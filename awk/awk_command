@@ -1,0 +1,4 @@
+awk -f get_africa_probes.awk atlas/active_probes.txt > africa_probes.txt 
+awk -f get_my_probes.awk africa_probes.txt > my_probes.txt
+awk -f get_target_probe_list.awk my_probes.txt ../address_african > target_and_probes.txt 
+

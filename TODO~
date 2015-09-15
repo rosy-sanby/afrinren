@@ -1,0 +1,14 @@
+TODO
+
+- json->geojson (fri)
+- take hop ip addresses, get coords and then make summarised json file with avg rtt and ip coords
+- streamline whole process (one main python file?)
+- run different traceroutes
+- *if path does not reach destination, schedule for ping
+- **figure out how to compare to see which have more paths, which have different paths, which combination is more accurate etc
+- **find overlapping paths and run from different hops
+
+
+DONE
+
+- aggregate all files in a folder
