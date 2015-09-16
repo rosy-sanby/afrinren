@@ -68,7 +68,7 @@ if __name__ == '__main__':
                 probe_list = target_dict[target]
                 
                 """
-                The maxmimum number of probes per requet is 500 so we need to break
+                The maxmimum number of probes per request is 500 so we need to break
                 this is up into several requests.
                 """
                 probe_list_chunks = [probe_list[x:x+500] for x in xrange(0, len(probe_list), 500)]

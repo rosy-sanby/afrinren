@@ -35,8 +35,12 @@ for filename in os.listdir(folder):
             for hop in result["result"]:
                 if hop["result"].has_key("from"):
                     hop_details = hop_ips.readline().split(', ')
-                    if hop["result"]["from"]==hop_details[0].strip() and len(hop_details)>3:
-                        hop["result"]["coordinates"] = [hop_details[7].strip(), hop_details[8].strip()]
+                    if hop["result"]["from"]==hop_details[0].strip():
+                        if len(hop_details)>3:
+                            hop["result"]["public"] = True
+                            hop["result"]["coordinates"] = [hop_details[7].strip(), hop_details[8].strip()]
+                        else:
+                            hop["result"]["public"] = False
                 if hop["result"].has_key("rtt"):
                     rtt = hop["result"]["rtt"]
             result["latency"] = rtt
