@@ -1,6 +1,6 @@
 TODO
 
-- json->geojson (fri)
+- json->geojson (fri)?
 - streamline whole process (one main python file?)
 - run different traceroutes
 - *if path does not reach destination, schedule for ping
