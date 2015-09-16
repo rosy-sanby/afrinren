@@ -1,52 +1,28 @@
 11 September 2015
 Roslyn Sanby, SNBROS001
 Honours Project - AfriNREN
-Folder: /home/s/snbros001/Documents/Me/AFRINREN
+Folder: /home/s/snbros001/Documents/Me/AFRINREN/snbros001
 
 References:
 https://github.com/USC-NSL/ripe-atlas
 
 (Some issues with having to use sudo in first few steps)
 
-1. Get all active probes:
-In ripe-atlas-master/atlas run 
+1. cd atlas
+   python fetch_active.py tab true > active_probes.txt                          #Get all active probes
 
-            ./fetch_active.py tab true 
+2. cd ../awk                                                                    #Filter down to source/destination information for each traceroute measurement
+   awk -f get_africa_probes.awk atlas/active_probes.txt > africa_probes.txt     #Get all African active probes:
+   awk -f get_my_probes.awk africa_probes.txt > my_probes.txt                   #Get two probes from each asn:
+   awk -f get_target_probe_list.awk my_probes.txt ../address_african > target_and_probes.txt 
 
-to get all active probes
-
-2. Filter down to source/destination information for each traceroute measurement:
-Run commands in ripe-atlas-master/awk_command.
-    Get all African active probes:
-
-            awk -f get_africa_probes.awk atlas/active_probes.txt > africa_probes.txt
-
-    Get two probes from each asn:
-
-            awk -f get_my_probes.awk africa_probes.txt > my_probes.txt
-            
-            awk -f get_target_probe_list.awk my_probes.txt ../address_african > target_and_probes.txt 
-
-(Make files of source/destination traceroutes for each destination in folder "measurements":
-            python make_src_dest_files.py )
-
-3. Conduct traceroutes:
-In ripe-atlas-master/atlas run 
-
-            ./atlas_traceroute.py -d '<Some description here>' -k 'api_key_1' -p 'ICMP' --paris 16 target_and_probes_<number>.txt measure_ids.txt.
+3. cd ../atlas                                                                  #Conduct traceroutes:
+   python atlas_traceroute.py -d '<Some description here>' -k 'api_key_1' -p 'ICMP' --paris 16 target_and_probes_<number>.txt measure_ids.txt.
        
-4. Check status to see if done:
+4. python atlas_status.py measure_ids.txt                                       #Check status to see if done
 
-            ./atlas_status.py measure_ids.txt
-
-5. Get measurement json files:
+5. cd ..
+   python fetch_results.py atlas/measure_ids.txt                                #Get measurement json files
             
-            python fetch_results.py measure_ids.txt
-            
-6. Aggregate results:
-
-            python aggregate_results.py <folder>
-      
-            python add_in_coords.py <folder>
-
-to output a new json file with average rtt per hop and coords in folder json
+6. python aggregate_results.py results                                          #Aggregate results
+   python add_in_coords.py results                                              #to output a new json file with average rtt per hop and coords in folder json
