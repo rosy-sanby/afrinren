@@ -2,16 +2,14 @@
 if (!id[$2]) #if this asn hasn't been seen yet
 {
     id[$2]=$1;
-    lat[$2] = $4;
-    long[$2]=$5;
+    country[$2]=$3;
     count[$2]++;
-    print id[$2],$2,lat[$2],long[$2];
+    print id[$2],$2,country[$2];
 } else if (count[$2]<2) { #we only want two probes per asn
     id[$2]=$1;
-    lat[$2] = $4;
-    long[$2]
+    country[$2]=$3;
     count[$2]++;
-    print id[$2],$2,lat[$2],long[$2]
+    print id[$2],$2,country[$2]
     
 }
 }
