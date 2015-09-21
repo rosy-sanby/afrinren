@@ -1,5 +1,6 @@
 TODO
 
+- run traceroutes so that they have sufficient time to complete - fix one-off measurements
 - streamline whole process (one main python file?) 
    so that only one command is needed to collect new set of info
 - run different traceroutes
