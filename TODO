@@ -25,7 +25,6 @@ IN PROGRESS
 
 - *if path does not reach destination, schedule for ping
     - found which ones need pings
-- json->geojson (fri)?
 
 
 
@@ -34,3 +33,4 @@ DONE
 
 - aggregate all files in a folder
 - take hop ip addresses, get coords and then make summarised json file with avg rtt and ip coords
+- json->geojson (fri)?
