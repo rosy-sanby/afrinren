@@ -12,8 +12,8 @@ from measure_baseclass import SLEEP_TIME
 class Traceroute(MeasurementBase):
 
     def __init__(self, target, key, probe_list=None, sess=None, 
-                dont_frag=False, protocol='ICMP', timeout=4000, paris=0):
-        super(Traceroute, self).__init__(target, key, probe_list, sess)
+                dont_frag=False, protocol='ICMP', timeout=4000, paris=0, start_time=None, stop_time=None):
+        super(Traceroute, self).__init__(target, key, probe_list, sess, start_time, stop_time)
         self.measurement_type = 'traceroute'
        
         self.dont_frag = dont_frag
@@ -65,12 +65,14 @@ if __name__ == '__main__':
     dont_frag = args.dont_frag
     protocol = args.protocol[0]
     timeout = args.timeout[0]
-    paris = int(args.paris[0])
+    paris = args.paris[0]
     is_public = args.private
     ipv6 = args.ipv6
     description = args.description[0]
     repeating = args.repeats[0]
     npackets = args.npackets[0]
+    start_time=args.start_time[0]
+    stop_time=args.stop_time[0]
 
     if not target_dict:
         sys.stderr.write('No targets defined\n')
@@ -81,13 +83,13 @@ if __name__ == '__main__':
 
         i = 0
         target_list = target_dict.keys()
-        print(target_list)
+        #print(target_list)
         while i < len(target_list):
            
             try: 
                 target = target_list[i]
                 probe_list = target_dict[target]
-                print(probe_list)
+                #print(probe_list)
                 """
                 The maxmimum number of probes per request is 500 so we need to break
                 this is up into several requests.
@@ -100,12 +102,13 @@ if __name__ == '__main__':
                     probe_list_chunk = probe_list_chunks[j]
                     
                     traceroute = Traceroute(target, key, probe_list=probe_list_chunk, 
-                                            dont_frag=dont_frag, protocol=protocol, timeout=timeout, paris=paris)
+                                            dont_frag=dont_frag, protocol=protocol, timeout=timeout, paris=paris, 
+                                            start_time=start_time, stop_time=stop_time)
                     traceroute.description = description
                     traceroute.af = 4 if not ipv6 else 6
                     traceroute.is_oneoff = True if repeating == 0 else False
                     if not traceroute.is_oneoff: traceroute.interval = repeating #set the repeating interval
-                    traceroute.is_public = is_public
+                    traceroute.is_public = True if not is_public else False
                     traceroute.npackets = npackets
 
                     response = traceroute.run()

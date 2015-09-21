@@ -134,8 +134,9 @@ class Page(object):
         url = self.__next_url if self.__next_url else self.initial_url
 
         response = requests.get(url) #make request
- 
+        #print(url)
         json_response = json.loads(response.text)
+        #print(response.text)
         if 'error' in json_response:
             err_msg = 'Error: %s' % json_response['error']
             self.logger.error(err_msg)
@@ -144,6 +145,7 @@ class Page(object):
         self.req_count += 1
 
         meta = json_response['meta']
+        #print(meta)
         self.__total = meta['total_count']
         self.__offset = meta['offset']
         self.__next_url = HOST+meta['next'] if meta['next'] else None
@@ -194,18 +196,40 @@ if __name__ == '__main__':
     format = sys.argv[1].lower()
     if format != 'json' and format != 'tab':
         usage_and_error()
-   
+
+    with open("../data/ASNs_formatted",'r') as asns_file:
+        asns = asns_file.readlines()
+
     onlyactive = sys.argv[2].lower() == 'true'
     if onlyactive:
-        URL = URL + '&status=1' #set flag to fetch only "connected" probes
+        URL = URL + '&status=1&asn_v4='+asns[0].split("; ")[1] #set flag to fetch only "connected" probes
+   
+    for asn in asns:
+        k = URL.rfind("&")
+        URL = URL[:k] +'&asn_v4='+asn.split("; ")[1]
 
-    probe_list = []
-    page = Page()
-    for p in page:
-        probe_list.extend(p)
- 
-    if format == 'json':
-        print(json.dumps(probe_list, sort_keys=True, indent=4, separators=(',', ': ')))
-    else: #
-        lines = json2tab(probe_list)
-        print('\n'.join(lines))
+        probe_list = []
+        page = Page()
+        for p in page:
+            probe_list.extend(p)
+     
+        if format == 'json':
+            print(json.dumps(probe_list, sort_keys=True, indent=4, separators=(',', ': ')))
+        else: #
+            lines = json2tab(probe_list)
+            print('\n'.join(lines))
+    
+    for asn in asns:
+        k = URL.rfind("&")
+        URL = URL[:k] +'&asn_v6='+asn.split("; ")[1]
+
+        probe_list = []
+        page = Page()
+        for p in page:
+            probe_list.extend(p)
+     
+        if format == 'json':
+            print(json.dumps(probe_list, sort_keys=True, indent=4, separators=(',', ': ')))
+        else: #
+            lines = json2tab(probe_list)
+            print('\n'.join(lines))

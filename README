@@ -12,12 +12,13 @@ https://github.com/USC-NSL/ripe-atlas
    python fetch_active.py tab true > active_probes.txt                          #Get all active probes
 
 2. cd ../awk                                                                    #Filter down to source/destination information for each traceroute measurement
-   awk -f get_africa_probes.awk ../atlas/active_probes.txt > ../data/africa_probes.txt     #Get all African active probes:
+   (awk -f get_africa_probes.awk ../atlas/active_probes.txt > ../data/africa_probes.txt)     #Get all African active probes:
+   awk -f get_unique_probes.awk ../atlas/active_probes.txt > ../data/africa_probes.txt
    awk -f get_my_probes_plain.awk ../data/africa_probes.txt > ../data/my_probes.txt                   #Get two probes from each asn:
    awk -f get_target_probe_list.awk ../data/my_probes.txt ../data/address_african > ../data/target_and_probes.txt 
 
 3. cd ../atlas                                                                  #Conduct traceroutes:
-   python atlas_traceroute.py -h -d '<Some description here>' -k 'api_key_1' -p 'UDP' --paris 16 target_and_probes_<number>.txt measure_ids.txt.
+   python atlas_traceroute.py -d '<Some description here>' -k '../data/api_key_1' --stop-time '1442863800' -p 'UDP' --paris 16 target_and_probes.txt measure_ids.txt.
        atlas_traceroute.py [-h] [-d DESCRIPTION] [-k KEY_FILE] [-r] [--ipv6]
                            [--repeats REPEATS] [--private]
                            [--start-time START_TIME] [--stop-time STOP_TIME]

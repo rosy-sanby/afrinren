@@ -12,12 +12,12 @@ key_loc = '~/.atlas/auth'
 
 class MeasurementBase(object):
 
-    def __init__(self, target, key, probe_list=None, sess=None):
+    def __init__(self, target, key, probe_list=None, sess=None, start_time=None, stop_time=None):
         
         self.target = target
         self.description = ''
-        self.start_time = None
-        self.stop_time = None
+        self.start_time = start_time
+        self.stop_time = stop_time
         self.af = 4
         self.is_oneoff = True
         self.is_public = True
@@ -42,6 +42,8 @@ class MeasurementBase(object):
         definitions['interval'] = self.interval
         definitions['resolve_on_probe'] = str(self.resolve_on_probe).lower()       
         definitions['is_public'] = str(self.is_public).lower()
+        definitions['start_time'] = self.start_time
+        definitions['stop_time'] = self.stop_time
          
         return definitions
 
@@ -121,7 +123,7 @@ def load_input(inputfile):
             target_dict[targetip] = [nodeid]
 
     f.close()
-    print(target_dict)
+    #print(target_dict)
     return target_dict
 
 def process_response(response):
@@ -164,8 +166,8 @@ def config_argparser():
                         help='Is a one-off measurement. Non-zero is the repeating interval in seconds (default: 0)')
     parser.add_argument('--private', action='store_true', 
                         help='Sets this measurement to be private. Other people will not see the results. (default: public)') 
-    parser.add_argument('--start-time', default=[None], nargs=1, help='Specify a Unix timestamp for this measurement to begin (default: immediately)')
-    parser.add_argument('--stop-time', default=[None], nargs=1, help='Specify a Unix timestamp for this measurement to stop')
+    parser.add_argument('--start_time', default=[None], nargs=1, help='Specify a Unix timestamp for this measurement to begin (default: immediately)')
+    parser.add_argument('--stop_time', default=[None], nargs=1, help='Specify a Unix timestamp for this measurement to stop')
     parser.add_argument('target_list', nargs=1, help='Path to target-list')
     parser.add_argument('meas_id_output', nargs=1, help='Path to file where measurement ids will be written')
  
