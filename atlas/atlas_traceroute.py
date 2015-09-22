@@ -66,7 +66,7 @@ if __name__ == '__main__':
     protocol = args.protocol[0]
     timeout = args.timeout[0]
     paris = args.paris[0]
-    is_public = args.private
+    is_private = args.private
     ipv6 = args.ipv6
     description = args.description[0]
     repeating = args.repeats[0]
@@ -108,7 +108,7 @@ if __name__ == '__main__':
                     traceroute.af = 4 if not ipv6 else 6
                     traceroute.is_oneoff = True if repeating == 0 else False
                     if not traceroute.is_oneoff: traceroute.interval = repeating #set the repeating interval
-                    traceroute.is_public = True if not is_public else False
+                    traceroute.is_public = True if not is_private else False
                     traceroute.npackets = npackets
 
                     response = traceroute.run()

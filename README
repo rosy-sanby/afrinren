@@ -28,6 +28,7 @@ https://github.com/USC-NSL/ripe-atlas
 
 python atlas_traceroute.py -d 'Last batch UDP and Paris 16' -k '../data/api_key_1' --repeats '300' --stop_time='1442866500' -p 'UDP' --paris '16' ../data/new_target_and_probes.txt measure_ids_7.txt
 
+python run_traceroutes.py measurements/ UDP/TCP/ICMP
        
 4. python atlas_status.py measure_ids.txt                                       #Check status to see if done
 

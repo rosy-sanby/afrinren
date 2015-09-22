@@ -12,6 +12,9 @@ folder = folder+"/NEW"
 for filename in os.listdir(folder):
     #print(filename_infolder)
     #continue
+    k=filename[:filename.rfind("_")-1].rfind("_")
+    if int(filename[k+1:filename.rfind("_")])<2442490:
+        continue
     filename=folder+"/"+filename   #get filename to which to add coords
 #    if filename_infolder=="NEW"
     newfilename = folder+"/../json"+filename[len(folder):-5]+"_coords"+filename[-5:]    #generate new filename

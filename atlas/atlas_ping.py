@@ -3,7 +3,7 @@ import sys
 import time
 import socket
 import traceback
-from atlas import measure_baseclass
+import measure_baseclass
 from measure_baseclass import MeasurementBase
 from measure_baseclass import load_input, readkey, process_response
 from measure_baseclass import SLEEP_TIME
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     description = args.description[0]
     num_packets = args.num_packets[0]
     repeating = args.repeats[0]
-    is_public = args.private   
+    is_private = args.private   
  
     if not target_dict:
         sys.stderr.write('No targets defined\n')
@@ -79,7 +79,7 @@ if __name__ == '__main__':
                     probe_list_chunk = probe_list_chunks[j]
                     ping = Ping(target, key, probe_list=probe_list_chunk, num_packets=num_packets)
                     ping.description = description
-                    ping.is_public = is_public
+                    ping.is_public = True if not is_private else False
                     ping.af = 4 if not ipv6 else 6
                     ping.is_oneoff = True if repeating == 0 else False
                     if not ping.is_oneoff: ping.interval = repeating #set the repeating interval
