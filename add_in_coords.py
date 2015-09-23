@@ -13,8 +13,9 @@ for filename in os.listdir(folder):
     #print(filename_infolder)
     #continue
     k=filename[:filename.rfind("_")-1].rfind("_")
-    if int(filename[k+1:filename.rfind("_")])<2442490:
+    if int(filename[k+1:filename.rfind("_")])<2439524:
         continue
+#    print(filename[k+1:filename.rfind("_")])
     filename=folder+"/"+filename   #get filename to which to add coords
 #    if filename_infolder=="NEW"
     newfilename = folder+"/../json"+filename[len(folder):-5]+"_coords"+filename[-5:]    #generate new filename
@@ -41,7 +42,11 @@ for filename in os.listdir(folder):
                     if hop["result"]["from"]==hop_details[0].strip():
                         if len(hop_details)>3:
                             hop["result"]["public"] = True
-                            hop["result"]["coordinates"] = [hop_details[7].strip(), hop_details[8].strip()]
+                            hop["result"]["country"] = hop_details[2].strip()[6:].strip()
+                            if hop_details[5].strip()=="City of":
+                                hop["result"]["coordinates"] = [hop_details[8].strip(), hop_details[9].strip()]
+                            else:
+                                hop["result"]["coordinates"] = [hop_details[7].strip(), hop_details[8].strip()]
                         else:
                             hop["result"]["public"] = False
                 if hop["result"].has_key("rtt"):
