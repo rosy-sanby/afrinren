@@ -1,3 +1,5 @@
+#working with already aggregated/summarised data
+from __future__ import print_function
 import sys
 import os
 import json
@@ -6,60 +8,125 @@ folder = sys.argv[1]
 
 #put traceroutes to same destination together in a dictionary {ip_address: [filename_1, filename_2, filename_3]}
 traceroutes = {}
+probe_ids = {}
+protocols = {}
+reached_dest = {}
+latency = {}
+num_hops = {}
+num_x_hops = {}
+num_consec_hops = {}
 for filename in os.listdir(folder):
     if filename[-5:]!=".json":
         continue
-    k=filename.rfind("_")
-    number = int(filename[k+1:filename.rfind(".")])
+    k=filename[:filename[:filename.rfind("_")-1].rfind("_")].rfind("_")
+    number = int(filename[k+1:filename[:filename.rfind("_")-1].rfind("_")])
     #print(number)
     if number<2439524:
         continue
     
-    json_data = open(folder+filename,'r')
+    json_data = open(folder+"/"+filename,'r')
     json_info = json.load(json_data)
     json_data.close()
+
     dst_addr = json_info[0]["dst_addr"]
     if not dst_addr in traceroutes:
         traceroutes[dst_addr] = [number]
     else:
-        traceroutes[dst_addr].append(folder+filename)
+        traceroutes[dst_addr].append(number)
+   
+    protocols[number] = json_info[0]["proto"]
+    reached_dest[number] = {}
+    latency[number] = {}
+    num_hops[number] = {}
+    num_x_hops[number] = {}
+    probe_ids[dst_addr]=[]
+    num_consec_hops[number] = {}
+    
+    for result in json_info:
+        prb_id = result["prb_id"]
+#.....
+        if not dst_addr in probe_ids:
+            probe_ids[dst_addr] = [prb_id]
+        elif not prb_id in probe_ids[dst_addr]:
+            probe_ids[dst_addr].append(prb_id)    
+
+        latency[number][prb_id] = str(result["latency"])
+        reached_dest[number][prb_id] = True
+        num_x_hops[number][prb_id] = 0
+        for hop in result["result"]:
+            hop_number = hop["hop"]
+            if not prb_id in num_consec_hops:
+                num_consec_hops[number][prb_id] = hop_number
+            elif num_consec_hops[number][prb_id] == hop_number-1: #hop not missed
+                num_consec_hops[number][prb_id] = hop_number
+
+            if hop["result"].has_key("x"):
+                if hop_number==255:
+                    reached_dest[number][result["prb_id"]] = False
+                num_x_hops[number][prb_id] += 1
+        num_hops[number][prb_id]=hop_number
+        
         
 #print(traceroutes)
 
-for key in traceroutes:
-    results = []
-    for filename in traceroutes[key]:
-        results.append(json.load(open(filename,'r')))
-        filename.close()
-        
-    for one_result in results:
-        total_rtt = 0.0
-        num_rtt = 0.0
-        num_x = 0
-        for result in one_result:
-            dst_addr = result["dst_addr"]
-            src_addr = result["src_addr"]
-            prb_id = result["prb_id"]
-            for hop in result["result"]:
-                for packet in hop["result"]:
-                    if packet.has_key("from"):
-                        fromIP=packet["from"]
-                    if packet.has_key("rtt"):
-                        total_rtt += packet["rtt"]
-                        num_rtt += 1                  
-                    elif packet.has_key("x") :
-                        num_x += 1
-                            
-                if (num_rtt>0):
-                    hop["result"]={"from":fromIP,"rtt":total_rtt/num_rtt}
-                    #hop_ips.write(fromIP+"\n") 
-                elif (num_x>0):
-                    hop["result"]={"x":"*"}
-                total_rtt = 0.0
-                num_rtt = 0.0
-                if hop.has_key("hop"):
-                    hop_no=hop["hop"]
-            if hop_no>250 and num_x>0:
-                #print("ping needed, I think from: "+str(prb_id)+" ip: "+src_addr+" to: "+dst_addr)
-            num_x = 0
-            hop_no = 0
+best_result ={}
+
+for dst_ip in traceroutes:
+    results = {}
+    gen_filename = folder+"/joined/"+"hops_to_"+dst_ip+".json"
+    final_result = []
+    for number in traceroutes[dst_ip]:
+        json_file = open(folder+"/result_for_"+str(number)+"_NEW_coords.json",'r')
+        results[number] = json.load(json_file)
+        json_file.close()
+
+    print ("Destination: "+dst_ip)
+    best_result[dst_ip]={}
+    for prb_id in probe_ids[dst_ip]:
+        print("Probe: "+str(prb_id))
+        for number in traceroutes[dst_ip]:
+            if reached_dest[number].has_key(prb_id):
+                if reached_dest[number][prb_id]:
+#                    print("Number: "+str(number)+", Protocol: "+protocols[number]+", Latency: "+latency[number][prb_id]+", # hops: "+str(num_hops[number][prb_id])+", # x hops: "+str(num_x_hops[number][prb_id]))
+
+                    if not prb_id in best_result[dst_ip]:
+                        best_result[dst_ip][prb_id] = number
+                    else:
+                        #check if this one is better
+                        if num_x_hops[number][prb_id] < num_x_hops[best_result[dst_ip][prb_id]][prb_id]:
+                            best_result[dst_ip][prb_id] = number
+                        elif latency[number][prb_id] < latency[best_result[dst_ip][prb_id]][prb_id]:
+                            best_result[dst_ip][prb_id] = number
+                        elif num_hops[number][prb_id] < num_hops[best_result[dst_ip][prb_id]][prb_id]:
+                            best_result[dst_ip][prb_id] = number
+                else:
+                    #Dest not reached for protocol
+                    #print("FAILED: Number: "+str(number)+", Protocol: "+protocols[number]+", Latency: "+latency[number][prb_id]+", # hops: "+str(num_hops[number][prb_id])+", # x hops: "+str(num_x_hops[number][prb_id]))
+                    if not prb_id in best_result[dst_ip]:
+                        best_result[dst_ip][prb_id] = number
+                    else:
+                        if num_consec_hops[number][prb_id] > num_consec_hops[best_result[dst_ip][prb_id]][prb_id]:
+                            best_result[dst_ip][prb_id] = number
+                        elif latency[number][prb_id] < latency[best_result[dst_ip][prb_id]][prb_id]:
+                            best_result[dst_ip][prb_id] = number
+                        elif num_x_hops[number][prb_id] < num_x_hops[best_result[dst_ip][prb_id]][prb_id]:
+                            best_result[dst_ip][prb_id] = number
+                    
+ #           else:
+                #No measurement from this probe to this ip
+        if best_result[dst_ip].has_key(prb_id):
+            number = best_result[dst_ip][prb_id]
+
+            for result in results[number]:
+                if result["prb_id"] == prb_id:
+                    if len(final_result)<=0:
+                        final_result = [result]
+                    else:
+                        final_result.append(result)
+                    break
+
+            print("BEST: Number: "+str(number)+", Protocol: "+protocols[number]+", Latency: "+latency[number][prb_id]+", # hops: "+str(num_hops[number][prb_id])+", # x hops: "+str(num_x_hops[number][prb_id]))
+    print()
+    with open(gen_filename,'w') as gen_file:
+        gen_file.write(json.dumps(final_result))
+
