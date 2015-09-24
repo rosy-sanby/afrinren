@@ -37,3 +37,11 @@ python run_traceroutes.py measurements/ UDP/TCP/ICMP
             
 6. python aggregate_results.py results                                          #Aggregate results
    python add_in_coords.py results                                              #to output a new json file with average rtt per hop and coords in folder json
+
+
+results/ -> raw results files
+results/NEW -> aggregated hop info
+results/hop_ips -> ip addresses for each hop
+results/hop_coords -> coord info for each ip address
+results/json -> results files with aggregated hop info, some fields removed and coords and country info added
+results/json/joined -> the best out of the above results

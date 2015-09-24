@@ -1,33 +1,27 @@
 TODO
 
-- run traceroutes so that they have sufficient time to complete - fix one-off measurements
 - streamline whole process (one main python file?) 
    so that only one command is needed to collect new set of info
-- run different traceroutes
-    - UDP
-    - TCP
-    - different paris
-    - more packets?
-- *if path does not reach destination, schedule for ping
-     - schedule those ones for a ping
-     - add the latency info into the json files
-- figure out how to compare to see which have more paths,
-   which have different paths, which combination is more accurate etc
-    - choose protocol that reaches destination/has least lost packets
-    - ...
+
 - find overlapping paths and run from different hops
     - find hops with matching ip addresses going to a particular destination (ie: overlapping path)
     - check if latency is similar
     - start one traceroute from this hop instead
         - edit atlas_traceroute.py to include firsthop parameter
+    ---- from one probe to many destination -> find the overlapping paths using the hop_ips folder info
 - put final info into json files for visualisation
 
 IN PROGRESS
 
-- *if path does not reach destination, schedule for ping
-    - found which ones need pings
-
-
+- run different traceroutes
+    - UDP
+    - TCP
+    - different paris
+    - more packets?
+- figure out how to compare to see which have more paths,
+   which have different paths, which combination is more accurate etc
+    - choose protocol that reaches destination/has least lost packets
+    - ...
 
 
 DONE
@@ -35,3 +29,8 @@ DONE
 - aggregate all files in a folder
 - take hop ip addresses, get coords and then make summarised json file with avg rtt and ip coords
 - json->geojson (fri)?
+- run traceroutes so that they have sufficient time to complete - fix one-off measurements
+- *if path does not reach destination, schedule for ping -> doesn't work like that....
+    - found which ones need pings 
+    - schedule those ones for a ping
+    - add the latency info into the json files
