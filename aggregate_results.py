@@ -9,12 +9,12 @@ if len(sys.argv)!=2:
     sys.exit(1)
 
 folder = sys.argv[1]
-pings = open(folder+"/pingsNeeded_TCP",'w')
+#pings = open(folder+"/pingsNeeded_TCP",'w')
 #count=0
 for filename in os.listdir(folder):
     #print(filename)
     k = filename.rfind("_")
-    if filename[-5:]!=".json" or filename[-8:]=="NEW.json" or int(filename[k+1:-5])<2442490:
+    if filename[-5:]!=".json" or filename[-8:]=="NEW.json" or int(filename[k+1:-5])<2456825:
         continue
 
     filename = folder+"/"+filename
@@ -52,9 +52,9 @@ for filename in os.listdir(folder):
                 num_rtt = 0.0
                 if hop.has_key("hop"):
                     hop_no=hop["hop"]
-            if hop_no>250 and num_x>0:
+            #if hop_no>250 and num_x>0:
                 #print("ping needed, I think from: "+str(prb_id)+" ip: "+src_addr+" to: "+dst_addr)
-                pings.write(dst_addr+" "+str(prb_id)+'\n')
+                #pings.write(dst_addr+" "+str(prb_id)+'\n')
             #else:
              #   count+=1
               #  print(count)
@@ -71,5 +71,5 @@ for filename in os.listdir(folder):
             
     with open(newfilename,'w') as json_data:
         json_data.write(json.dumps(results))
-pings.close()       
+#pings.close()       
 #    break

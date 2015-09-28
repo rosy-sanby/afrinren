@@ -19,7 +19,7 @@ class Traceroute(MeasurementBase):
         self.dont_frag = dont_frag
         self.protocol = protocol
         self.timeout = timeout
-        self.paris = paris
+        self.paris = int(paris)
         
     def setup_definitions(self):
     
@@ -29,7 +29,7 @@ class Traceroute(MeasurementBase):
         definitions['protocol'] = self.protocol 
         definitions['timeout'] = self.timeout
         
-        if self.paris >= 1 and self.paris <= 16:
+        if self.paris >= 0 and self.paris <= 64:
             definitions['paris'] = self.paris        
 
         return definitions
@@ -37,10 +37,10 @@ class Traceroute(MeasurementBase):
 def config_argparser():
 
     parser = measure_baseclass.config_argparser()
-    parser.add_argument('-p', '--protocol', default=['ICMP'], nargs=1, help='Must be ICMP or UDP (default: ICMP)')
+    parser.add_argument('-p', '--protocol', default=['ICMP'], nargs=1, help='Must be ICMP, TCP or UDP (default: ICMP)')
     parser.add_argument('--dont-frag', action='store_true', help='Don\'t fragment the packet (default: off)')
-    parser.add_argument('--paris', default=[0], 
-                        help='Use Paris. Value must be between 1 and 16. (default: off)')
+    parser.add_argument('--paris', default=0, type=int,
+                        help='Use Paris. Value must be between 1 and 16 (64?). (default: off)')
     parser.add_argument('--timeout', default=[4000], type=int, # list default and type=int do not seem to work
                         help='Value (in milliseconds) must be between 1 and 60000 (default: 4000)')
     parser.add_argument('--npackets', default=[3], nargs=1,
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     dont_frag = args.dont_frag
     protocol = args.protocol[0]
     timeout = args.timeout[0]
-    paris = args.paris[0]
+    paris = args.paris
     is_private = args.private
     ipv6 = args.ipv6
     description = args.description[0]
@@ -110,7 +110,11 @@ if __name__ == '__main__':
                     if not traceroute.is_oneoff: traceroute.interval = repeating #set the repeating interval
                     traceroute.is_public = True if not is_private else False
                     traceroute.npackets = npackets
-
+                    
+                    #print(traceroute.)
+                    
+                    #sys.exit(0)
+                    
                     response = traceroute.run()
                     status, result = process_response(response)
 

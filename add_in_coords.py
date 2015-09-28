@@ -13,7 +13,7 @@ for filename in os.listdir(folder):
     #print(filename_infolder)
     #continue
     k=filename[:filename.rfind("_")-1].rfind("_")
-    if int(filename[k+1:filename.rfind("_")])<2439524:
+    if int(filename[k+1:filename.rfind("_")])<2456825:
         continue
 #    print(filename[k+1:filename.rfind("_")])
     filename=folder+"/"+filename   #get filename to which to add coords

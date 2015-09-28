@@ -73,7 +73,7 @@ for filename in os.listdir(folder):
 
 for dst_ip in traceroutes:
     results = {}
-    gen_filename = folder+"/joined/"+"hops_to_"+dst_ip+".json"
+    gen_filename = folder+"/joined_with_paris/"+"hops_to_"+dst_ip+".json"
     final_result = []
     for number in traceroutes[dst_ip]:
         json_file = open(folder+"/result_for_"+str(number)+"_NEW_coords.json",'r')
