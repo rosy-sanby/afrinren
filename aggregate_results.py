@@ -14,7 +14,7 @@ folder = sys.argv[1]
 for filename in os.listdir(folder):
     #print(filename)
     k = filename.rfind("_")
-    if filename[-5:]!=".json" or filename[-8:]=="NEW.json" or int(filename[k+1:-5])<2456825:
+    if filename[-5:]!=".json" or filename[-8:]=="NEW.json" or int(filename[k+1:-5])<2457510:
         continue
 
     filename = folder+"/"+filename
