@@ -6,7 +6,7 @@ import sys
  #   print("specify python file and text file to get info\neg: python convert_to_geojson.py json_file.json")
   #  sys.exit(1)
 
-filename = sys.argv[1]  #get filename to which to add coords
+filename = sys.argv[1]  
 newfilename = "probes.json"    #generate new filename
 probes = open(filename, 'r')
 lines = probes.readlines()
@@ -35,7 +35,7 @@ for line in lines:
             as_type=asn.split("; ")[0].strip()
             break
 #    print(count)
-    geojson["features"].append({"type":"Feature", "geometry":{"type": "Point", "coordinates": [probe_info[2],probe_info[3].strip()]}, "properties":{"probe_id":probe_info[0], "asn":probe_info[1], "name": as_name, "type": as_type}})
+    geojson["features"].append({"type":"Feature", "geometry":{"type": "Point", "coordinates": [float(probe_info[3]),float(probe_info[2].strip())]}, "properties":{"probe_id":int(probe_info[0]), "asn":int(probe_info[1]), "name": as_name, "type": as_type}})
     
     count+=1
     as_name=""

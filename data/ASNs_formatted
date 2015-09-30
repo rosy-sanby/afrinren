@@ -11,6 +11,7 @@ NREN; 37608; iRENALA
 NREN; 327815; Xnet
 NREN; 327764; SomaliREN
 NREN; 37197; SudRen
+NREN; 33788; SudRen
 NREN; 2018; TENET
 University; 31960; Eduardo Mondlane University
 University; 22354; University of Dar es Salaam
@@ -24,4 +25,4 @@ University; 37501; University of the Free State
 University; 8094; North West University
 University; 37520; Rhodes University
 University; 37060; University of the Witwatersrand
-Unknown; 37054; Madagascar
+NREN; 37054; iRENALA
