@@ -97,6 +97,9 @@ dest_tcp = 0.0
 count_icmp = 0.0
 count_udp = 0.0
 count_tcp = 0.0
+tot_icmp = 0.0
+tot_udp = 0.0
+tot_tcp = 0.0
 
 #for a particular destination:
 for dst_ip in traceroutes:
@@ -113,6 +116,7 @@ for dst_ip in traceroutes:
                         icmp.append(float("{0:.2f}".format(float(latency[number][prb_id]))))
                     else:
                         icmp = [float("{0:.2f}".format(float(latency[number][prb_id])))]
+                    tot_icmp+=1
                     if reached_somewhere[number][prb_id]:
                         count_icmp+=1
                     if reached_dest[number][prb_id]:
@@ -142,6 +146,7 @@ for dst_ip in traceroutes:
                         tcp.append(float("{0:.2f}".format(float(latency[number][prb_id]))))
                     else:
                         tcp = [float("{0:.2f}".format(float(latency[number][prb_id])))]
+                    tot_tcp+=1    
                     if reached_somewhere[number][prb_id]:
                         count_tcp+=1
                     if reached_dest[number][prb_id]:
@@ -171,6 +176,7 @@ for dst_ip in traceroutes:
                         udp.append(float("{0:.2f}".format(float(latency[number][prb_id]))))
                     else:
                         udp = [float("{0:.2f}".format(float(latency[number][prb_id])))]
+                    tot_udp+=1    
                     if reached_somewhere[number][prb_id]:
                         count_udp+=1
                     if reached_dest[number][prb_id]:
@@ -211,9 +217,11 @@ print(f_oneway(icmp, tcp, udp))
 #print ("Kruskal: ")
 #print(kruskal(paris0_udp, paris16_udp, paris64_udp))
 
-print("ICMP: "+str(int(dest_icmp))+"/"+str(int(count_icmp)))
-print((dest_icmp/count_icmp)*100)
-print("TCP: "+str(int(dest_tcp))+"/"+str(int(count_tcp)))
-print((dest_tcp/count_tcp)*100)
-print("UDP: "+str(int(dest_udp))+"/"+str(int(count_udp)))
-print((dest_udp/count_udp)*100)
+print("ICMP: "+str(int(dest_icmp))+"/"+str(int(count_icmp))+"\t"+str(int(dest_icmp))+"/"+str(int(tot_icmp)))
+print(str((dest_icmp/count_icmp)*100)+"\t"+str((dest_icmp/tot_icmp)*100))
+
+print("TCP: "+str(int(dest_tcp))+"/"+str(int(count_tcp)) +"\t"+str(int(dest_tcp))+"/"+str(int(tot_tcp)))
+print(str((dest_tcp/count_tcp)*100)+'\t'+str((dest_tcp/tot_tcp)*100))
+
+print("UDP: "+str(int(dest_udp))+"/"+str(int(count_udp))+"\t"+str(int(dest_udp))+"/"+str(int(tot_udp)))
+print(str((dest_udp/count_udp)*100)+"\t"+str((dest_udp/tot_udp)*100))
