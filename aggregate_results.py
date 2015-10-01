@@ -14,13 +14,14 @@ folder = sys.argv[1]
 for filename in os.listdir(folder):
     #print(filename)
     k = filename.rfind("_")
-    if filename[-5:]!=".json" or filename[-8:]=="NEW.json" or int(filename[k+1:-5])<2457510:
+    if filename[-5:]!=".json" or filename[-8:]=="NEW.json" or int(filename[k+1:-5])<2439524:
         continue
 
     filename = folder+"/"+filename
     newfilename = folder+"/NEW"+filename[len(folder):-5]+"_NEW"+filename[-5:]    #generate new filename
     hop_ip_filename = folder+"/hop_ips"+filename[len(folder):-5]+"_hop_ips.txt"
     hop_coords = folder+"/hop_coords"+filename[len(folder):-5]+"_hop_coords"
+    hop_asns = folder+"/hop_asns"+filename[len(folder):-5]+"_hop_asns"
     hop_ips = open(hop_ip_filename,'w')   #open a file to write all the hop ip addresses to
     
 
@@ -68,6 +69,9 @@ for filename in os.listdir(folder):
     myfile = open(hop_coords,'w')
     call(["sh","geoip.sh",hop_ip_filename], stdout=myfile)
     myfile.close()
+    my_asn_file = open(hop_asns,'w')
+    call(["sh","geoip_asns.sh",hop_ip_filename], stdout=my_asn_file)
+    my_asn_file.close()
             
     with open(newfilename,'w') as json_data:
         json_data.write(json.dumps(results))
