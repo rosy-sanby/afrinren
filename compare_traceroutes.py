@@ -137,6 +137,6 @@ for dst_ip in traceroutes:
             print()
         print()
 
-    with open(gen_filename,'w') as gen_file:
-        gen_file.write(json.dumps(final_result))
+#    with open(gen_filename,'w') as gen_file:
+ #       gen_file.write(json.dumps(final_result))
 
