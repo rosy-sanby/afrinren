@@ -22,11 +22,11 @@ class Node(object):
         
     def print_out(self, count):
         if len(self.children)<=0:
-            if self.weight>1:
-                print('-'*count+self.data+" "+str(self.weight))
+            #if self.weight>1:
+            print('-'*count+self.data+" "+str(self.weight))
         else:
-            if self.weight>1:
-                print('-'*count+self.data+" "+str(self.weight))
+            #if self.weight>1:
+            print('-'*count+self.data+" "+str(self.weight))
             count+=1
             for child in self.children:
                 child.print_out(count)
