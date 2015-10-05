@@ -22,9 +22,11 @@ class Node(object):
         
     def print_out(self, count):
         if len(self.children)<=0:
-            print('-'*count+self.data+" "+str(self.weight))
+            if self.weight>1:
+                print('-'*count+self.data+" "+str(self.weight))
         else:
-            print('-'*count+self.data+" "+str(self.weight))
+            if self.weight>1:
+                print('-'*count+self.data+" "+str(self.weight))
             count+=1
             for child in self.children:
                 child.print_out(count)
@@ -84,5 +86,6 @@ for filename in os.listdir(folder):
                     node = Node(ip_addr)
                     trees[prb_id] = node
 for probe in trees:
+    print(probe)
     trees[probe].print_out(0)
-    break                 
+    print('\n\n')   
