@@ -4,18 +4,33 @@ import sys
 import os
 import json
 
-folder = sys.argv[1] # in general results/json
+class Node(object):
+    def __init__(self, data):
+        self.data = data
+        self.children = []
+        self.parents = []
+        self.weight = 1
 
-#put traceroutes to same destination together in a dictionary {ip_address: [filename_1, filename_2, filename_3]}
-traceroutes = {}
-probe_ids = {}
-protocols = {}
-reached_dest = {}
-reached_somewhere = {}
-latency = {}
-num_hops = {}
-num_x_hops = {}
-num_consec_hops = {}
+    def add_child(self, obj):
+        self.children.append(obj)
+    
+    def add_parent(self, obj):
+        self.parents.append(obj)
+    
+    def add_weight(self):
+        self.weight += 1
+        
+    def print_out(self, count):
+        if len(self.children)<=0:
+            print('-'*count+self.data+" "+str(self.weight))
+        else:
+            print('-'*count+self.data+" "+str(self.weight))
+            count+=1
+            for child in self.children:
+                child.print_out(count)
+
+folder = sys.argv[1] # in general results/json
+trees = {}
 for filename in os.listdir(folder):
     if filename[-5:]!=".json":
         continue
@@ -25,62 +40,49 @@ for filename in os.listdir(folder):
     if number<2439524 or (number<2457306 and number>2456864):
         continue
     
-    json_data = open(folder+"/"+filename,'r')
-    json_info = json.load(json_data)
-    json_data.close()
-
-    dst_addr = json_info[0]["dst_addr"]
-    if not dst_addr in traceroutes:
-        traceroutes[dst_addr] = [number]
-    else:
-        traceroutes[dst_addr].append(number)
-   
-    protocols[number] = json_info[0]["proto"]
-    reached_dest[number] = {}
-    reached_somewhere[number] = {}
-    latency[number] = {}
-    num_hops[number] = {}
-    num_x_hops[number] = {}
-    probe_ids[dst_addr]=[]
-    num_consec_hops[number] = {}
     
-    for result in json_info:
-        prb_id = result["prb_id"]
-#.....
-        if not dst_addr in probe_ids:
-            probe_ids[dst_addr] = [prb_id]
-        elif not prb_id in probe_ids[dst_addr]:
-            probe_ids[dst_addr].append(prb_id)
-        reached_dest[number][prb_id] = False    
-        reached_somewhere[number][prb_id] = True
-        latency[number][prb_id] = str(result["latency"])
-        
-        num_x_hops[number][prb_id] = 0
-        for hop in result["result"]:
-            hop_number = hop["hop"]
-            if not prb_id in num_consec_hops:
-                num_consec_hops[number][prb_id] = hop_number
-            elif num_consec_hops[number][prb_id] == hop_number-1: #hop not missed
-                num_consec_hops[number][prb_id] = hop_number
-
-            if hop["result"].has_key("x"):
-                if hop_number==255:
-                    reached_somewhere[number][prb_id] = False
-                num_x_hops[number][prb_id] += 1
-            
-            elif hop["result"]["from"]==dst_addr:
-                reached_dest[number][prb_id] = True
-        num_hops[number][prb_id]=hop_number
-        
-
-
-#for a particular destination:
-for dst_ip in traceroutes:
- 
-    #for a particular probe to that destination:
-    for prb_id in probe_ids[dst_ip]:
-        #for all the measurements that go to that destination
-        for number in traceroutes[dst_ip]:
-            #if there is a traceroute from this probe to this destination in this measurement
-            if reached_somewhere[number].has_key(prb_id):
+    with open(folder+"/"+filename,'r') as json_data:
+        results = json.load(json_data)
+        for result in results:
+            prb_id = result["prb_id"]
+            if not prb_id in trees: #if this probe hasn't been seen yet
+                trees[prb_id] = ""
+                #print("New root: "+str(prb_id))
+            #else:
+                #print("Root seen already: "+ str(prb_id))
+            node = trees[prb_id] #set current node to root of tree of the probe
                 
+            for hop in result["result"]:
+                if hop["result"].has_key("from"):
+                    ip_addr = hop["result"]["from"]
+                else:
+                    ip_addr = "x"
+                if isinstance(node, Node): #if this is already a Node,
+                    if ip_addr=="x":
+                        new_child = Node(ip_addr)
+                        node.add_child(new_child)
+                        new_child.add_parent(node)
+                        node = new_child
+                    elif node.data == ip_addr: #check if the ip_addresses are the same
+                        node.add_weight()
+                        #print("Node seen again: "+ip_addr)
+                    else:   #check if a child has same ip address
+                        child_found = False
+                        for child in node.children:
+                            if child.data == ip_addr:
+                                child_found = True
+                                child.add_weight()
+                                node = child
+                                break
+                        if not child_found:
+                            new_child = Node(ip_addr)
+                            node.add_child(new_child)
+                            new_child.add_parent(node)
+                            #print("New child added: "+ip_addr)
+                            node = new_child
+                else:
+                    node = Node(ip_addr)
+                    trees[prb_id] = node
+for probe in trees:
+    trees[probe].print_out(0)
+    break                 
