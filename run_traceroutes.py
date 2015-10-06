@@ -15,8 +15,9 @@ if len(sys.argv)<4:
         print(number)    
         description = "Traceroute "+protocol+" and paris 0: "+str(number)
         path = folder+filename
-        measure_id_path = "atlas/measure_ids/paris0/measure_ids_"+protocol+"_oneoff_"+str(number)+".txt"
-        call(['sudo','python', 'atlas/atlas_traceroute.py', '-d', description, '-k', 'data/api_key_1', '-p', protocol, path, measure_id_path])
+        start_time = "1444165200"
+        measure_id_path = "atlas/measure_ids/new_set/measure_ids_"+protocol+"_oneoff_"+str(number)+".txt"
+        call(['python', 'atlas/atlas_traceroute.py', '-d', description, '-k', 'data/api_key_1', '--start_time', start_time,'-p', protocol, path, measure_id_path])
         #break
     
 else:
