@@ -45,20 +45,25 @@ for filename in os.listdir(folder):
     
     with open(folder+"/"+filename,'r') as json_data:
         results = json.load(json_data)
+        hop_ips = []
+        end_ips = []
+        first_result = True
         for result in results:
             prb_id = result["prb_id"]
+            dst_addr = result["dst_addr"]
             if not prb_id in trees: #if this probe hasn't been seen yet
                 trees[prb_id] = ""
                 #print("New root: "+str(prb_id))
             #else:
                 #print("Root seen already: "+ str(prb_id))
             node = trees[prb_id] #set current node to root of tree of the probe
-                
+            first_hop = []                
             for hop in result["result"]:
                 if hop["result"].has_key("from"):
                     ip_addr = hop["result"]["from"]
                 else:
                     ip_addr = "x"
+                #construct trees to find overlaps at beginning
                 if isinstance(node, Node): #if this is already a Node,
                     if ip_addr=="x":
                         new_child = Node(ip_addr)
@@ -67,6 +72,8 @@ for filename in os.listdir(folder):
                         node = new_child
                     elif node.data == ip_addr: #check if the ip_addresses are the same
                         node.add_weight()
+                        if node.weight>5:
+                            first_hop = [prb_id, dst_addr, hop["hop"], node.weight]
                         #print("Node seen again: "+ip_addr)
                     else:   #check if a child has same ip address
                         child_found = False
@@ -74,6 +81,8 @@ for filename in os.listdir(folder):
                             if child.data == ip_addr:
                                 child_found = True
                                 child.add_weight()
+                                if child.weight>5:
+                                    first_hop = [prb_id, dst_addr, hop["hop"], node.weight]
                                 node = child
                                 break
                         if not child_found:
@@ -85,7 +94,30 @@ for filename in os.listdir(folder):
                 else:
                     node = Node(ip_addr)
                     trees[prb_id] = node
-for probe in trees:
-    print(probe)
-    trees[probe].print_out(0)
-    print('\n\n')   
+
+                #find overlaps at end
+                if first_result:
+                    hop_ips.append(ip_addr)
+                else:
+                    if ip_addr in hop_ips and not ip_addr=="x" and not hop["hop"]==255:
+                        end_ips.append(ip_addr)
+                        #print(str(prb_id) +" to "+result["dst_addr"]+": "+str(hop["hop"])+" - "+ip_addr)
+            first_result = False
+            print(first_hop)
+            if len(end_ips)>1 and dst_addr in end_ips:
+                hop_ips=end_ips
+                print(prb_id)
+            end_ips=[]
+            
+        if not "x" in hop_ips and dst_addr in hop_ips:
+            print (dst_addr+": ", end="")
+            for hop_ip in hop_ips:
+                print(hop_ip, end=", ")
+            print('\n')
+        else:
+            print("Leave as is\n")
+#            
+#for probe in trees:
+    #print(probe)
+   # trees[probe].print_out(0)
+   # print('\n\n')   
