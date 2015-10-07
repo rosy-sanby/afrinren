@@ -27,15 +27,15 @@ class Node(object):
             self.destinations.append(obj)
 
     def set_hop_no(self, num):
-        hop_no = num
+        self.hop_no = num
         
     def print_out(self, count):
         if len(self.children)<=0:
             #if self.weight>1:
-            print('-'*count+self.data+" "+str(self.weight))
+            print('-'*count+str(self.hop_no)+": "+self.data+" "+str(self.weight))
         else:
             #if self.weight>1:
-            print('-'*count+self.data+" "+str(self.weight))
+            print('-'*count+str(self.hop_no)+": "+self.data+" "+str(self.weight))
             count+=1
             for child in self.children:
                 child.print_out(count)
@@ -54,7 +54,6 @@ for filename in os.listdir(folder):
     
     with open(folder+"/"+filename,'r') as json_data:
         results = json.load(json_data)
-        hop_ips = {}
         first_hops = {}
         first_result = True
         for result in results:
@@ -66,8 +65,7 @@ for filename in os.listdir(folder):
             #else:
                 #print("Root seen already: "+ str(prb_id))
             node = trees[prb_id] #set current node to root of tree of the probe
-            first_hops[prb_id] = []  
-            hop_ips[prb_id] = []              
+            first_hops[prb_id] = []              
             for hop in result["result"]:
                 if hop["result"].has_key("from"):
                     ip_addr = hop["result"]["from"]
@@ -114,6 +112,28 @@ for filename in os.listdir(folder):
                     node.add_destination(dst_addr)
                     trees[prb_id] = node
 
+for filename in os.listdir(folder):
+    if filename[-5:]!=".json":
+        continue
+    k=filename.find("(")
+    number = int(filename[k+1:filename.find(")")])
+    #print(number)
+    if number<2439524 or (number<2457306 and number>2456864):
+        continue
+    
+    
+    with open(folder+"/"+filename,'r') as json_data:        
+        hop_ips = {}
+        results = json.load(json_data)
+        for result in results:
+            prb_id = result["prb_id"]
+            dst_addr = result["dst_addr"]
+            hop_ips[prb_id] = []
+            for hop in result["result"]:
+                if hop["result"].has_key("from"):
+                    ip_addr = hop["result"]["from"]
+                else:
+                    ip_addr = "x"
                 #find overlaps at end
                 hop_ips[prb_id].append(ip_addr)
         
@@ -160,15 +180,50 @@ for filename in os.listdir(folder):
                     same_path_probes.remove(probe)
             for probe in same_path_probes:
                 prbs_to_miss.append(probe)
-                print(str(probe)+" to "+new_end+" (same as "+str(prb_id)+")")
+
+ #               print(str(probe)+" to "+new_end+" (same as "+str(prb_id)+")")
+                
+                #need to wait for whole tree to be built for this...
+       #         curr_node_dests = []
+      #          for dest in trees[probe].destinations:
+     #               curr_node_dests.append(dest)
+    #            curr_node_weight = trees[probe].weight
+   #             curr_node_children = []
+  #              for child in trees[probe].children:
+ #                   curr_node_children.append(child)
+#                curr_node_hop = trees[probe].hop_no
                 curr_node = trees[probe]
-                while dst_addr in curr_node.destinations and curr_node.weight>5:
+                too_few=False
+
+                while dst_addr in curr_node.destinations and curr_node.weight>2 and not too_few:
+                    child_found=False
                     for child in curr_node.children:
                         if dst_addr in child.destinations:
+                            if child.weight<5:
+                                too_few=True
+                                break
                             curr_node=child
+                            child_found=True
+#                            curr_node_dests = []
+ #                           for dest in child.destinations:
+  #                              curr_node_dests.append(dest)
+   #                         curr_node_weight = child.weight
+    #                        curr_node_children = []
+     #                       for child in child.children:
+      #                          curr_node_children.append(child)
+       #                     curr_node_hop = child.hop_no
                             break
-                print(str(curr_node.hop_no)+" "+str(curr_node.weight))
-                        
+                    if not child_found:
+                        break
+
+                if curr_node.hop_no>1 and len(curr_node.destinations)>1:
+                    curr_node.weight=curr_node.weight-1
+                    curr_node.destinations.remove(dst_addr)
+#                print("probe "+str(probe)+" to "+dst_addr+": "+str(curr_node.hop_no)+" "+str(curr_node.weight))
+                    print(str(probe)+" "+dst_addr+" "+str(curr_node.hop_no)+" "+ curr_node.destinations[0]+" "+new_end+" "+str(prb_id))
+                else:
+                    print(str(probe)+" "+dst_addr+" "+str(curr_node.hop_no)+" "+ dst_addr+" "+new_end+" "+str(prb_id))
+            
 
 #print(trees[probe].destinations)
  #               print(trees[probe].weight)
@@ -189,3 +244,5 @@ for filename in os.listdir(folder):
        #         print(hop_ip, end=", ")
          #   print('\n')
         #break
+#for probe in trees:
+#    trees[probe].print_out(1)
