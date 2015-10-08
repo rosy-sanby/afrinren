@@ -42,6 +42,8 @@ class Node(object):
 
 folder = sys.argv[1] # in general results/json
 trees = {}
+
+##########make trees########################################
 for filename in os.listdir(folder):
     if filename[-5:]!=".json":
         continue
@@ -112,6 +114,8 @@ for filename in os.listdir(folder):
                     node.add_destination(dst_addr)
                     trees[prb_id] = node
 
+
+##############trees made - find overlaps now############################
 for filename in os.listdir(folder):
     if filename[-5:]!=".json":
         continue
@@ -153,6 +157,7 @@ for filename in os.listdir(folder):
         for prb_id in hop_ips:
             
             if prb_id in prbs_to_miss:
+                print()
                 continue
             #print(prb_id)
             same_path_probes = []
@@ -172,8 +177,26 @@ for filename in os.listdir(folder):
                                 same_path_probes = []
                                 new_end = dst_addr
                                 break
+            
             if prb_id in same_path_probes:
                 same_path_probes.remove(prb_id)
+            #    curr_node = trees[prb_id]
+             #   too_few=False
+
+#                while dst_addr in curr_node.destinations and curr_node.weight>2 and not too_few:
+ #                   child_found=False
+  #                  for child in curr_node.children:
+   #                     if dst_addr in child.destinations:
+    #                        if child.weight<5:
+     #                           too_few=True
+      #                          break
+       #                     curr_node=child #does this overwrite the curr_node?
+        #                    child_found=True
+         #                   break
+          #          if not child_found:
+           #             break
+
+                #print(str(prb_id)+" "+dst_addr+" "+str(curr_node.hop_no)+" "+ curr_node.destinations[0]+" "+dst_addr+" "+str(prb_id))
                 
             for probe in prbs_to_miss:
                 if probe in same_path_probes:
@@ -202,7 +225,7 @@ for filename in os.listdir(folder):
                             if child.weight<5:
                                 too_few=True
                                 break
-                            curr_node=child
+                            curr_node=child #does this overwrite the curr_node?
                             child_found=True
 #                            curr_node_dests = []
  #                           for dest in child.destinations:

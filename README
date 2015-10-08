@@ -6,7 +6,7 @@ Folder: /home/s/snbros001/Documents/Me/AFRINREN/snbros001
 References:
 https://github.com/USC-NSL/ripe-atlas
 
-******650 measurements times 3 protocols gives 1950 measurements but only 1192 made - need to actually output the ones that aren't gonna get their dest addr changed*********************
+******650 measurements times 3 protocols gives 1950 measurements but only 1625 made - need to actually output the ones that aren't gonna get their dest addr changed*********************
 
 1. cd atlas
    python fetch_active.py tab true > active_probes.txt                          #Get all active probes
