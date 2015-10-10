@@ -12,7 +12,7 @@ for filename in os.listdir(folder):
     #print(filename_infolder)
     #continue
     k=filename[:filename.rfind("_")-1].rfind("_")
-    if int(filename[k+1:filename.rfind("_")])<2439524:
+    if int(filename[k+1:filename.rfind("_")])<2487080:
         continue
 #    print(filename[k+1:filename.rfind("_")])
     filename=folder+"/"+filename   #get filename to which to add coords
@@ -27,6 +27,8 @@ for filename in os.listdir(folder):
     probe_file.close()
     with open(filename,'r') as json_data:
         results = json.load(json_data)
+        if len(results)<=0:
+            continue
         dst_asn=0
         not_done = []
         for result in results:
@@ -56,7 +58,7 @@ for filename in os.listdir(folder):
                     if hop["result"]["from"]==hop_details_asn[0].strip():
                         if not hop_details_asn[1].split(': ')[1].strip() == "IP Address not found":
                             hop["result"]["asn"] = int(hop_details_asn[1].split(': ')[1].strip()[2:hop_details_asn[1].split(': ')[1].strip().find(" ")])
-                    if hop["result"]["from"]==result["dst_addr"]:
+                    if hop["result"]["from"]==result["dst_addr"] and hop["result"].has_key("asn"):
                         dst_asn = hop["result"]["asn"]
                 if hop["result"].has_key("rtt"):
                     rtt = hop["result"]["rtt"]

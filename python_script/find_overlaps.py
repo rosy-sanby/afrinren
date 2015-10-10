@@ -47,12 +47,14 @@ trees = {}
 for filename in os.listdir(folder):
     if filename[-5:]!=".json":
         continue
+    protocol = filename[:filename.find("_")]
     k=filename.find("(")
     number = int(filename[k+1:filename.find(")")])
     #print(number)
     if number<2439524 or (number<2457306 and number>2456864):
         continue
-    
+    if not protocol=="UDP":
+        continue
     
     with open(folder+"/"+filename,'r') as json_data:
         results = json.load(json_data)
@@ -119,10 +121,13 @@ for filename in os.listdir(folder):
 for filename in os.listdir(folder):
     if filename[-5:]!=".json":
         continue
+    protocol = filename[:filename.find("_")]
     k=filename.find("(")
     number = int(filename[k+1:filename.find(")")])
     #print(number)
     if number<2439524 or (number<2457306 and number>2456864):
+        continue
+    if not protocol=="UDP":
         continue
     
     
@@ -157,7 +162,7 @@ for filename in os.listdir(folder):
         for prb_id in hop_ips:
             
             if prb_id in prbs_to_miss:
-                print()
+                #print()
                 continue
             #print(prb_id)
             same_path_probes = []
@@ -167,7 +172,7 @@ for filename in os.listdir(folder):
                     continue
                 else: #something else goes along this path
                     if len(same_path_probes)<=0:
-                        if not hop_ip==dst_addr:
+                        if not hop_ip==dst_addr and not hop_ip=="x":
                             for probe in end_ips[hop_ip]:
                                 same_path_probes.append(probe)
                             new_end = hop_ip

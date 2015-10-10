@@ -12,7 +12,7 @@ from measure_baseclass import SLEEP_TIME
 class Traceroute(MeasurementBase):
 
     def __init__(self, target, key, probe_list=None, sess=None, 
-                dont_frag=False, protocol='ICMP', timeout=4000, paris=0, start_time=None, stop_time=None):
+                dont_frag=False, protocol='ICMP', timeout=4000, paris=0, firsthop=1, start_time=None, stop_time=None):
         super(Traceroute, self).__init__(target, key, probe_list, sess, start_time, stop_time)
         self.measurement_type = 'traceroute'
        
@@ -20,6 +20,7 @@ class Traceroute(MeasurementBase):
         self.protocol = protocol
         self.timeout = timeout
         self.paris = int(paris)
+        self.firsthop=int(firsthop)
         
     def setup_definitions(self):
     
@@ -31,6 +32,7 @@ class Traceroute(MeasurementBase):
         
         if self.paris >= 0 and self.paris <= 64:
             definitions['paris'] = self.paris        
+        definitions['firsthop'] = self.firsthop        
 
         return definitions
 
@@ -45,6 +47,7 @@ def config_argparser():
                         help='Value (in milliseconds) must be between 1 and 60000 (default: 4000)')
     parser.add_argument('--npackets', default=[3], nargs=1,
                         help='Number of packets to send to each hop (default: 3)')
+    parser.add_argument('--firsthop', default=1, type=int, help='change what the first hop is. (default: 1)')
     return parser
 
 if __name__ == '__main__':
@@ -71,6 +74,7 @@ if __name__ == '__main__':
     description = args.description[0]
     repeating = args.repeats[0]
     npackets = args.npackets[0]
+    firsthop = args.firsthop
     start_time=args.start_time[0]
     stop_time=args.stop_time[0]
 
@@ -102,7 +106,7 @@ if __name__ == '__main__':
                     probe_list_chunk = probe_list_chunks[j]
                     
                     traceroute = Traceroute(target, key, probe_list=probe_list_chunk, 
-                                            dont_frag=dont_frag, protocol=protocol, timeout=timeout, paris=paris, 
+                                            dont_frag=dont_frag, protocol=protocol, timeout=timeout, paris=paris, firsthop=firsthop, 
                                             start_time=start_time, stop_time=stop_time)
                     traceroute.description = description
                     traceroute.af = 4 if not ipv6 else 6
