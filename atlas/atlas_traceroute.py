@@ -133,7 +133,7 @@ if __name__ == '__main__':
                         outf.write(outstr+'\n')
                         print(outstr)
                         j += 1 #only increment on success
-                        time.sleep(10)
+                        time.sleep(5) #changed from 10 to 5
                     
                 i += 1
             except socket.error:

@@ -10,7 +10,7 @@ probes_file.close()
 
 for ip in ips:
     for probe in probes:
-        new_filename = "measurements/target_"+ip.strip()+"_and_probe_"+str(probe.split()[0])+".txt"
+        new_filename = "full_measurements/target_"+ip.strip()+"_and_probe_"+str(probe.split()[0])+".txt"
         new_file = open(new_filename, 'w')
         new_file.write(ip.strip() + " " +probe.split()[0])
         new_file.close()
