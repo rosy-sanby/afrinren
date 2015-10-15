@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 import json
@@ -12,7 +13,7 @@ for info in result_info:
     csv_file.write(str(info)+',')
 #        csv_file.write(',')
 csv_file.write('\n')
-
+lowest=99999999
 for filename in os.listdir(folder):
     if not filename[-5:] == ".json":
         continue
@@ -21,24 +22,37 @@ for filename in os.listdir(folder):
     filename = filename.split('_') #protocol_to_dest(measureid).json
     
     measurement_id = filename[2][filename[2].find('(')+1:filename[2].find(')')]
-    if int(measurement_id)>2487080:
-        full = False
-    else:
-        full = True
+    #if int(measurement_id)>2487080:
+     #   full = False
+    #else:
+       # full = True
      #   continue
-        
-    print(measurement_id)
+    if int(measurement_id)<lowest:
+        lowest = int(measurement_id)
+#    print(measurement_id)
     
     try:
         with open("results/measurement_info/info_for_"+measurement_id.strip()+".json",'r') as my_info_file:
             my_info = json.load(my_info_file)
-            dest = my_info['description'][my_info['description'].find("to")+3:my_info['description'].find("(")-1]
-            dest_sent_to = my_info['dst_name']
+            #print(measurement_id, end=": ")
+            description = my_info['description']
+            if description.split(' ')[2]=="from":
+                dest = description[description.find("to")+3:description.find("(")-1]
+                if dest == "and":
+                    dest=False
+                dest_sent_to = my_info['dst_name']
+                if description[description.find('(')+1:description.find(')')] == "full":
+                    full = True
+                else:
+                    full = False
+            else:
+                dest = False
+                full =True
     except IOError:
-        if not full:
-            dest = filename[2][:filename[2].find('(')]+"?" #the ip address it was actually sent to (not necessarily target)
-        else:
-            dest = filename[2][:filename[2].find('(')]
+        #if not full:
+        dest = filename[2][:filename[2].find('(')]+"?" #the ip address it was actually sent to (not necessarily target)
+        #else:
+         #   dest = filename[2][:filename[2].find('(')]
         dest_sent_to = dest
     protocol = filename[0]
     
@@ -50,6 +64,9 @@ for filename in os.listdir(folder):
         result_info.append(full)
         probe = result['prb_id']
         latency = result['latency']
+        if not dest:
+            dest = result['dst_name']
+            dest_sent_to = result['dst_name']
         dest_reached = False
         somewhere_reached = True
         num_hops = 0
@@ -95,3 +112,4 @@ for filename in os.listdir(folder):
         csv_file.write('\n')
     
 csv_file.close()
+print(lowest)
