@@ -2,7 +2,7 @@ import sys
 import os
 import json
 
-folder = sys.argv[1]
+folder = sys.argv[1] #results/json
 for filename in os.listdir(folder):
     if not filename[:filename.find('_')]=="result":
         continue

@@ -8,13 +8,13 @@ if len(sys.argv)!=2:
     print("specify python file and folder with json files to edit\neg: python aggregate_results.py results")
     sys.exit(1)
 
-folder = sys.argv[1]
+folder = sys.argv[1] #results
 #pings = open(folder+"/pingsNeeded_TCP",'w')
 #count=0
 for filename in os.listdir(folder):
     #print(filename)
     k = filename.rfind("_")
-    if filename[-5:]!=".json" or filename[-8:]=="NEW.json" or int(filename[k+1:-5])<2487080:
+    if filename[-5:]!=".json" or filename[-8:]=="NEW.json" or int(filename[k+1:-5])<2800000:
         continue
 
     filename = folder+"/"+filename

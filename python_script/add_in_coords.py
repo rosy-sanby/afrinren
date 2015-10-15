@@ -6,13 +6,13 @@ import os
 if len(sys.argv)!=2:
     print("specify python file, and folder with json file to edit and where to get coords\neg: python add_in_coords.py foldername")
     sys.exit(1)
-folder = sys.argv[1]
+folder = sys.argv[1] #results
 folder = folder+"/NEW"
 for filename in os.listdir(folder):
     #print(filename_infolder)
     #continue
     k=filename[:filename.rfind("_")-1].rfind("_")
-    if int(filename[k+1:filename.rfind("_")])<2487080:
+    if int(filename[k+1:filename.rfind("_")])<2800000:
         continue
 #    print(filename[k+1:filename.rfind("_")])
     filename=folder+"/"+filename   #get filename to which to add coords
