@@ -64,7 +64,10 @@ for filename in os.listdir(folder):
         result_info.append(full)
         probe = result['prb_id']
         latency = result['latency']
+<<<<<<< HEAD
         hops=[]
+=======
+>>>>>>> de890b2a82a67cffda4ca84bd7baa2bea751858e
         if not dest:
             dest = result['dst_name']
             dest_sent_to = result['dst_name']
