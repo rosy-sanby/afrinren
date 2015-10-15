@@ -4,17 +4,17 @@ import sys
 from subprocess import call
 
 #usage to make sure correct arguments supplied
-if len(sys.argv)!=2:
-    print("specify python file and folder with json files to edit\neg: python aggregate_results.py results")
-    sys.exit(1)
+#if len(sys.argv)!=2:
+ #   print("specify python file and folder with json files to edit\neg: python aggregate_results.py results")
+  #  sys.exit(1)
 
-folder = sys.argv[1] #results
+folder = "results"
 #pings = open(folder+"/pingsNeeded_TCP",'w')
 #count=0
 for filename in os.listdir(folder):
     #print(filename)
     k = filename.rfind("_")
-    if filename[-5:]!=".json" or filename[-8:]=="NEW.json" or int(filename[k+1:-5])<2800000:
+    if filename[-5:]!=".json" or filename[-8:]=="NEW.json":
         continue
 
     filename = folder+"/"+filename
@@ -22,11 +22,24 @@ for filename in os.listdir(folder):
     hop_ip_filename = folder+"/hop_ips"+filename[len(folder):-5]+"_hop_ips.txt"
     hop_coords = folder+"/hop_coords"+filename[len(folder):-5]+"_hop_coords"
     hop_asns = folder+"/hop_asns"+filename[len(folder):-5]+"_hop_asns"
-    hop_ips = open(hop_ip_filename,'w')   #open a file to write all the hop ip addresses to
     
+    
+ #   for name in os.listdir(folder+"/NEW"):
+#        print(name)
+    if filename[len(folder)+1:-5]+"_NEW"+filename[-5:] in os.listdir(folder+"/NEW"):
+        #print("Done: "+filename)
+        continue
+    else:
+        print("Aggregating info for: "+filename)
+#    break
 
     with open(filename,'r') as json_data:
-        results = json.load(json_data)
+        hop_ips = open(hop_ip_filename,'w')   #open a file to write all the hop ip addresses to
+        try:        
+            results = json.load(json_data)
+        except ValueError:
+            print("No Json object")
+            continue
         total_rtt = 0.0
         num_rtt = 0.0
         num_x = 0
@@ -62,7 +75,7 @@ for filename in os.listdir(folder):
             num_x = 0
             hop_no = 0
             
-    hop_ips.close()
+        hop_ips.close()
     
     #print(hop_ip_filename)
     #print(hop_coords)

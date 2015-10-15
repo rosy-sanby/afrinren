@@ -8,8 +8,14 @@ if len(sys.argv)!=2:
     sys.exit(1)
 
 folder = sys.argv[1]
-
+#percent = 0
+count = 1
+tot = len(os.listdir(folder))
 for filename in os.listdir(folder):
+    #if not percent==int((count*100)//tot):
+    print((count*100)/tot)
+    #percent=int((count*100)//tot)
+    count+=1
     filename = folder+'/'+filename
     measure_id_file = open(filename, 'r')
     measure_ids = measure_id_file.readlines()

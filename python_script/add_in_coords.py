@@ -3,17 +3,25 @@ import sys
 import os
 
 #usage to make sure correct arguments supplied
-if len(sys.argv)!=2:
-    print("specify python file, and folder with json file to edit and where to get coords\neg: python add_in_coords.py foldername")
-    sys.exit(1)
-folder = sys.argv[1] #results
+#if len(sys.argv)!=2:
+ #   print("specify python file, and folder with json file to edit and where to get coords\neg: python add_in_coords.py foldername")
+  #  sys.exit(1)
+folder = "results"
 folder = folder+"/NEW"
 for filename in os.listdir(folder):
     #print(filename_infolder)
     #continue
+    skip = False
     k=filename[:filename.rfind("_")-1].rfind("_")
-    if int(filename[k+1:filename.rfind("_")])<2800000:
+    for i in os.listdir("results/json"):
+        if len(i.split('('))>1 and filename[k+1:filename.rfind("_")]+").json" == i.split('(')[1]:
+            print("done: "+filename)
+            skip = True
+            break
+    if skip:
         continue
+    else:
+        print("Adding in coords: "+filename)
 #    print(filename[k+1:filename.rfind("_")])
     filename=folder+"/"+filename   #get filename to which to add coords
 #    if filename_infolder=="NEW"
