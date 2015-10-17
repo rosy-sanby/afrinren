@@ -78,16 +78,16 @@ for filename in os.listdir(folder):
                 if json_file[:json_file.find('(')]==protocol+"_to_"+dest and int(json_file[json_file.find('(')+1:json_file.find(')')])<2487080: #this number should work as overlaps were based on these measurements
                     with open("results/json/"+json_file, 'r') as full_trace:
                         my_full_trace = json.load(full_trace)
-                    for result in my_full_trace:
-                        if result.has_key("prb_id") and int(result["prb_id"])==int(ref[1]):
+                    for trace in my_full_trace:
+                        if trace.has_key("prb_id") and int(trace["prb_id"])==int(ref[1]):
                             probe_buddy=my_full_trace[0]
                             break
                 #find dest buddy measurement        
                 elif json_file[:json_file.find('(')]==protocol+"_to_"+ref[0] and int(json_file[json_file.find('(')+1:json_file.find(')')])<2487080:
                     with open("results/json/"+json_file, 'r') as buddy_file:
                         my_buddy_trace = json.load(buddy_file)
-                    for result in my_buddy_trace:
-                        if result.has_key("prb_id") and int(result["prb_id"])==int(probe):
+                    for trace in my_buddy_trace:
+                        if trace.has_key("prb_id") and int(trace["prb_id"])==int(probe):
                             dest_buddy=my_buddy_trace[0]
                             break
         
@@ -105,14 +105,16 @@ for filename in os.listdir(folder):
         first_hop = 1
         
         for hop in result['result']:
+           
             if hop['hop'] >= 255:
                 num_hops += 1
                 somewhere_reached = False
             else:
                 if count == 1:
                     first_hop = hop['hop']
-					print(hop['hop'])
-                    count+=1
+                    count+=1 
+                    #print(full)
+                    #print(hop['hop'])
                     #add on beginning section
                     if not full and ref and dest_buddy:
                         same_found = False
