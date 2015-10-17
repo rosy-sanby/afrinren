@@ -111,6 +111,7 @@ for filename in os.listdir(folder):
             else:
                 if count == 1:
                     first_hop = hop['hop']
+					print(hop['hop'])
                     count+=1
                     #add on beginning section
                     if not full and ref and dest_buddy:
