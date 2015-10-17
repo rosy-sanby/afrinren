@@ -47,7 +47,7 @@ for filename in os.listdir(folder):
             #get ref buddies
             if len(description.split(' '))<=6 or (description.split(' ')[6]=="(as" or full):
                 ref = None
-            else: #ref is [dst buddy(diff dst, same probe), probe buddy(diff probe, same dest)]
+            else: #ref is [probe buddy(diff dst, same probe), dst buddy(diff probe, same dest)]
                 ref = [description.split(' ')[6].split(',')[0].strip()[1:], description.split(' ')[6].split(',')[1].strip()[:-1]]
                 
     except IOError:
@@ -69,7 +69,9 @@ for filename in os.listdir(folder):
         result_info.append(full)
         probe = result['prb_id']
         latency = result['latency']
-        
+        if not dest:
+            dest = result['dst_name']
+            dest_sent_to = result['dst_name']
         #find buddies
         probe_buddy={}
         dest_buddy={}
@@ -80,7 +82,7 @@ for filename in os.listdir(folder):
                         my_full_trace = json.load(full_trace)
                     for trace in my_full_trace:
                         if trace.has_key("prb_id") and int(trace["prb_id"])==int(ref[1]):
-                            probe_buddy=my_full_trace[0]
+                            dest_buddy=trace
                             break
                 #find dest buddy measurement        
                 elif json_file[:json_file.find('(')]==protocol+"_to_"+ref[0] and int(json_file[json_file.find('(')+1:json_file.find(')')])<2487080:
@@ -88,14 +90,10 @@ for filename in os.listdir(folder):
                         my_buddy_trace = json.load(buddy_file)
                     for trace in my_buddy_trace:
                         if trace.has_key("prb_id") and int(trace["prb_id"])==int(probe):
-                            dest_buddy=my_buddy_trace[0]
+                            probe_buddy=trace
                             break
         
         hops=[]
-
-        if not dest:
-            dest = result['dst_name']
-            dest_sent_to = result['dst_name']
         dest_reached = False
         somewhere_reached = True
         num_hops = 0
@@ -116,9 +114,9 @@ for filename in os.listdir(folder):
                     #print(full)
                     #print(hop['hop'])
                     #add on beginning section
-                    if not full and ref and dest_buddy:
+                    if not full and ref and probe_buddy:
                         same_found = False
-                        for info in dest_buddy['result']:
+                        for info in probe_buddy['result']:
                             if info['result'].has_key('from'):
                                 if  hop['result'].has_key('from') and info['result']['from'] == hop ['result']['from']:
                                     same_found = True
@@ -137,9 +135,9 @@ for filename in os.listdir(folder):
                 dest_reached = True
                 hops.append(dest)
             elif hop['result']['from'] == dest_sent_to: #add on end section
-                if not full and ref and probe_buddy:
+                if not full and ref and dest_buddy:
                     same_found = False
-                    for info in probe_buddy['result']:
+                    for info in dest_buddy['result']:
                         if info['result'].has_key('from'):
                             if info['result']['from'] == hop ['result']['from']:
                                 same_found = True
