@@ -4,6 +4,7 @@ import sys
 import json
 
 folder = sys.argv[1] #results/json/
+number = 1
 
 csv_file = open("data/result_info.csv", 'w')
 
@@ -13,7 +14,7 @@ for info in result_info:
     csv_file.write(str(info)+',')
 #        csv_file.write(',')
 csv_file.write('\n')
-lowest=99999999
+
 for filename in os.listdir(folder):
     if not filename[-5:] == ".json":
         continue
@@ -22,20 +23,14 @@ for filename in os.listdir(folder):
     filename = filename.split('_') #protocol_to_dest(measureid).json
     
     measurement_id = filename[2][filename[2].find('(')+1:filename[2].find(')')]
-    #if int(measurement_id)>2487080:
-     #   full = False
-    #else:
-       # full = True
-     #   continue
-    if int(measurement_id)<lowest:
-        lowest = int(measurement_id)
-#    print(measurement_id)
     
     try:
+        #open measurement info
         with open("results/measurement_info/info_for_"+measurement_id.strip()+".json",'r') as my_info_file:
             my_info = json.load(my_info_file)
             #print(measurement_id, end=": ")
             description = my_info['description']
+            
             if description.split(' ')[2]=="from":
                 dest = description[description.find("to")+3:description.find("(")-1]
                 if dest == "and":
@@ -48,14 +43,24 @@ for filename in os.listdir(folder):
             else:
                 dest = False
                 full =True
+
+            #get ref buddies
+            if len(description.split(' '))<=6 or (description.split(' ')[6]=="(as" or full):
+                ref = None
+            else: #ref is [dst buddy(diff dst, same probe), probe buddy(diff probe, same dest)]
+                ref = [description.split(' ')[6].split(',')[0].strip()[1:], description.split(' ')[6].split(',')[1].strip()[:-1]]
+                
     except IOError:
         #if not full:
         dest = filename[2][:filename[2].find('(')]+"?" #the ip address it was actually sent to (not necessarily target)
         #else:
          #   dest = filename[2][:filename[2].find('(')]
         dest_sent_to = dest
-    protocol = filename[0]
+        ref = None
+        full = True
     
+    protocol = filename[0]
+          
     for result in results:
         result_info = [] #[measurement_id(int), probe(int), dest(str), dest_sent_to(str), protocol(str), 
                         #dest_reached(bool), somewhere_reached(bool), first_hop(int), num_hops(int), 
@@ -64,10 +69,30 @@ for filename in os.listdir(folder):
         result_info.append(full)
         probe = result['prb_id']
         latency = result['latency']
-<<<<<<< HEAD
+        
+        #find buddies
+        probe_buddy={}
+        dest_buddy={}
+        if ref:
+            for json_file in os.listdir("results/json/"):
+                if json_file[:json_file.find('(')]==protocol+"_to_"+dest and int(json_file[json_file.find('(')+1:json_file.find(')')])<2487080: #this number should work as overlaps were based on these measurements
+                    with open("results/json/"+json_file, 'r') as full_trace:
+                        my_full_trace = json.load(full_trace)
+                    for result in my_full_trace:
+                        if result.has_key("prb_id") and int(result["prb_id"])==int(ref[1]):
+                            probe_buddy=my_full_trace[0]
+                            break
+                #find dest buddy measurement        
+                elif json_file[:json_file.find('(')]==protocol+"_to_"+ref[0] and int(json_file[json_file.find('(')+1:json_file.find(')')])<2487080:
+                    with open("results/json/"+json_file, 'r') as buddy_file:
+                        my_buddy_trace = json.load(buddy_file)
+                    for result in my_buddy_trace:
+                        if result.has_key("prb_id") and int(result["prb_id"])==int(probe):
+                            dest_buddy=my_buddy_trace[0]
+                            break
+        
         hops=[]
-=======
->>>>>>> de890b2a82a67cffda4ca84bd7baa2bea751858e
+
         if not dest:
             dest = result['dst_name']
             dest_sent_to = result['dst_name']
@@ -78,6 +103,7 @@ for filename in os.listdir(folder):
         avg_rtt = 0
         count = 1
         first_hop = 1
+        
         for hop in result['result']:
             if hop['hop'] >= 255:
                 num_hops += 1
@@ -86,14 +112,43 @@ for filename in os.listdir(folder):
                 if count == 1:
                     first_hop = hop['hop']
                     count+=1
+                    #add on beginning section
+                    if not full and ref and dest_buddy:
+                        same_found = False
+                        for info in dest_buddy['result']:
+                            if info['result'].has_key('from'):
+                                if  hop['result'].has_key('from') and info['result']['from'] == hop ['result']['from']:
+                                    same_found = True
+                                    break
+                                else:
+                                    hops.append(info['result']['from'])
+                            elif not same_found:
+                                hops.append(info['result']['x'])
                 num_hops += 1
                 if hop['result'].has_key('rtt'):
                     avg_rtt += hop['result']['rtt']
             if hop['result'].has_key('x'):
+                hops.append(hop['result']['x'])
                 num_x_hops += 1
             elif hop['result']['from'] == dest:
                 dest_reached = True
                 hops.append(dest)
+            elif hop['result']['from'] == dest_sent_to: #add on end section
+                if not full and ref and probe_buddy:
+                    same_found = False
+                    for info in probe_buddy['result']:
+                        if info['result'].has_key('from'):
+                            if info['result']['from'] == hop ['result']['from']:
+                                same_found = True
+                            if not same_found:
+                                continue
+                            else:
+                                hops.append(info['result']['from'])
+                        elif same_found:
+                            hops.append(info['result']['x']) 
+                    if same_found and hops[-1] == dest:
+                        dest_reached = True
+                    break
             else:
                 hops.append(hop['result']['from'])
         if (num_hops - num_x_hops)>0:
@@ -119,6 +174,7 @@ for filename in os.listdir(folder):
         for hop in hops:
             csv_file.write(hop+';')
         csv_file.write('\n')
+        print(number)
+        number+=1
     
 csv_file.close()
-print(lowest)
