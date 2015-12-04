@@ -3,7 +3,7 @@ import os
 import sys
 import json
 
-folder = sys.argv[1] #results/json/
+folder = "results/json/"
 number = 1
 
 csv_file = open("data/result_info.csv", 'w')
@@ -47,17 +47,29 @@ for filename in os.listdir(folder):
             #get ref buddies
             if len(description.split(' '))<=6 or (description.split(' ')[6]=="(as" or full):
                 ref = None
+            elif description.split(' ')[6]=="(more)" or description.split(' ')[6]=="(more+)":
+                ref = None
+                with open("data/address_african", 'r') as address_file:
+                    addresses = address_file.readlines()
+                    if description.split(' ')[5]+'\n' in addresses and my_info['firsthop']==1:
+                        full = True
+                    else:
+                        full = False
             else: #ref is [probe buddy(diff dst, same probe), dst buddy(diff probe, same dest)]
+                #print(description)
                 ref = [description.split(' ')[6].split(',')[0].strip()[1:], description.split(' ')[6].split(',')[1].strip()[:-1]]
                 
-    except IOError:
+    except (IOError, IndexError) as e:
         #if not full:
         dest = filename[2][:filename[2].find('(')]+"?" #the ip address it was actually sent to (not necessarily target)
         #else:
          #   dest = filename[2][:filename[2].find('(')]
         dest_sent_to = dest
         ref = None
-        full = True
+        full = None
+        print(description)
+        print (e)
+        sys.exit(0)
     
     protocol = filename[0]
           
@@ -141,6 +153,7 @@ for filename in os.listdir(folder):
                         if info['result'].has_key('from'):
                             if info['result']['from'] == hop ['result']['from']:
                                 same_found = True
+                                latency = dest_buddy['latency']
                             if not same_found:
                                 continue
                             else:
@@ -173,7 +186,7 @@ for filename in os.listdir(folder):
             csv_file.write(str(info)+',')
     #        csv_file.write(',')
         for hop in hops:
-            csv_file.write(hop+';')
+            csv_file.write(hop+',')
         csv_file.write('\n')
         print(number)
         number+=1

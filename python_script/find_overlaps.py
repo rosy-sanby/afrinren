@@ -4,6 +4,7 @@ import sys
 import os
 import json
 
+#Node for creating tree
 class Node(object):
     def __init__(self, data):
         self.data = data
@@ -31,17 +32,22 @@ class Node(object):
         
     def print_out(self, count):
         if len(self.children)<=0:
-            #if self.weight>1:
             print('-'*count+str(self.hop_no)+": "+self.data+" "+str(self.weight))
         else:
-            #if self.weight>1:
             print('-'*count+str(self.hop_no)+": "+self.data+" "+str(self.weight))
             count+=1
             for child in self.children:
                 child.print_out(count)
 
 folder = sys.argv[1] # in general results/json
+my_protocol = sys.argv[2] #UDP or TCP or ICMP
 trees = {}
+line_number=1
+all_dsts = []
+
+with open("data/address_african",'r') as addresses:
+    for line in addresses.readlines():
+        all_dsts.append(line.strip())
 
 ##########make trees########################################
 for filename in os.listdir(folder):
@@ -50,26 +56,22 @@ for filename in os.listdir(folder):
     protocol = filename[:filename.find("_")]
     k=filename.find("(")
     number = int(filename[k+1:filename.find(")")])
-    #print(number)
-    if number<2439524 or (number<2457306 and number>2456864):
+    if (number>2487079 and number<2802359) or (number>2810085 and number<2901361):#not full:
         continue
-    if not protocol=="UDP":
+    if not protocol==my_protocol: #only selects certain protocol measurements
         continue
     
     with open(folder+"/"+filename,'r') as json_data:
         results = json.load(json_data)
-        first_hops = {}
         first_result = True
         for result in results:
             prb_id = result["prb_id"]
             dst_addr = result["dst_addr"]
+            if not dst_addr in all_dsts:
+                continue
             if not prb_id in trees: #if this probe hasn't been seen yet
                 trees[prb_id] = ""
-                #print("New root: "+str(prb_id))
-            #else:
-                #print("Root seen already: "+ str(prb_id))
             node = trees[prb_id] #set current node to root of tree of the probe
-            first_hops[prb_id] = []              
             for hop in result["result"]:
                 if hop["result"].has_key("from"):
                     ip_addr = hop["result"]["from"]
@@ -88,9 +90,6 @@ for filename in os.listdir(folder):
                     elif node.data == ip_addr: #check if the ip_addresses are the same
                         node.add_weight()
                         node.add_destination(dst_addr)
-                        if node.weight>5:
-                            first_hops[prb_id] = [dst_addr, hop["hop"], node.weight]
-                        #print("Node seen again: "+ip_addr)
                     else:   #check if a child has same ip address
                         child_found = False
                         for child in node.children:
@@ -98,8 +97,6 @@ for filename in os.listdir(folder):
                                 child_found = True
                                 child.add_weight()
                                 child.add_destination(dst_addr)
-                                if child.weight>5:
-                                    first_hops[prb_id] = [dst_addr, hop["hop"], node.weight]
                                 node = child
                                 break
                         if not child_found:
@@ -109,7 +106,6 @@ for filename in os.listdir(folder):
                             node.add_destination(dst_addr)
                             new_child.add_parent(node)
                             new_child.add_destination(dst_addr)
-                            #print("New child added: "+ip_addr)
                             node = new_child
                 else:
                     node = Node(ip_addr)
@@ -118,159 +114,127 @@ for filename in os.listdir(folder):
 
 
 ##############trees made - find overlaps now############################
+hop_ips = {} #dictionary by probe id to show paths
 for filename in os.listdir(folder):
     if filename[-5:]!=".json":
         continue
     protocol = filename[:filename.find("_")]
     k=filename.find("(")
     number = int(filename[k+1:filename.find(")")])
-    #print(number)
-    if number<2439524 or (number<2457306 and number>2456864):
+    if (number>2487079 and number<2802359) or (number>2810085 and number<2901361): #not full
         continue
-    if not protocol=="UDP":
+    if not protocol==my_protocol:
         continue
     
     
-    with open(folder+"/"+filename,'r') as json_data:        
-        hop_ips = {}
+    with open(folder+"/"+filename,'r') as json_data:
         results = json.load(json_data)
         for result in results:
             prb_id = result["prb_id"]
             dst_addr = result["dst_addr"]
-            hop_ips[prb_id] = []
+            if not dst_addr in all_dsts:
+                continue
+            if hop_ips.has_key(prb_id):
+                if hop_ips[prb_id].has_key(dst_addr):
+                    continue
+                hop_ips[prb_id][dst_addr] = [] #to get the path for this particular probe-dest pair
+            else:
+                hop_ips[prb_id]={}
+            hop_ips[prb_id][dst_addr] = [] #to get the path for this particular probe-dest pair
             for hop in result["result"]:
                 if hop["result"].has_key("from"):
                     ip_addr = hop["result"]["from"]
                 else:
                     ip_addr = "x"
                 #find overlaps at end
-                hop_ips[prb_id].append(ip_addr)
+                hop_ips[prb_id][dst_addr].append(ip_addr)
         
-        end_ips = {}
-        for prb_id in hop_ips:
-            for hop_ip in hop_ips[prb_id]:
-                if end_ips.has_key(hop_ip):
-                    if prb_id in end_ips[hop_ip]:
+end_ips = {} #dictonary by destination address to see which probes follow same path near destination
+for prb_id in hop_ips:
+    for dst_addr in hop_ips[prb_id]:
+        for hop_ip in hop_ips[prb_id][dst_addr]:
+            if end_ips.has_key(dst_addr):
+                if end_ips[dst_addr].has_key(hop_ip):
+                    if prb_id in end_ips[dst_addr][hop_ip]:
                         continue
                     else:
-                        end_ips[hop_ip].append(prb_id)
+                        end_ips[dst_addr][hop_ip].append(prb_id)
                 else:
-                    end_ips[hop_ip] = [prb_id]
+                    end_ips[dst_addr][hop_ip] = [prb_id]
+            else:
+                end_ips[dst_addr]={}
+                end_ips[dst_addr][hop_ip] = [prb_id]
         
-        #check if an end path is copied in any other hop_ips path(s)
-        prbs_to_miss = []
-        for prb_id in hop_ips:
-            
-            if prb_id in prbs_to_miss:
-                #print()
-                continue
-            #print(prb_id)
-            same_path_probes = []
-            new_end = dst_addr
-            for hop_ip in hop_ips[prb_id]:
-                if len(end_ips[hop_ip])<=1:
-                    continue
-                else: #something else goes along this path
-                    if len(same_path_probes)<=0:
-                        if not hop_ip==dst_addr and not hop_ip=="x":
-                            for probe in end_ips[hop_ip]:
-                                same_path_probes.append(probe)
-                            new_end = hop_ip
-                    else:
-                        for el in same_path_probes:
-                            if not el in end_ips[hop_ip]: #check if they all continue on the same path
-                                same_path_probes = []
-                                new_end = dst_addr
-                                break
-            
-            if prb_id in same_path_probes:
-                same_path_probes.remove(prb_id)
-            #    curr_node = trees[prb_id]
-             #   too_few=False
+        
+               
+#check if an end path is copied in any other hop_ips path(s)
+partial = {} #dictionary [probe][dest]=[first_hop, max_hop]
 
-#                while dst_addr in curr_node.destinations and curr_node.weight>2 and not too_few:
- #                   child_found=False
-  #                  for child in curr_node.children:
-   #                     if dst_addr in child.destinations:
-    #                        if child.weight<5:
-     #                           too_few=True
-      #                          break
-       #                     curr_node=child #does this overwrite the curr_node?
-        #                    child_found=True
-         #                   break
-          #          if not child_found:
-           #             break
-
-                #print(str(prb_id)+" "+dst_addr+" "+str(curr_node.hop_no)+" "+ curr_node.destinations[0]+" "+dst_addr+" "+str(prb_id))
-                
-            for probe in prbs_to_miss:
-                if probe in same_path_probes:
-                    same_path_probes.remove(probe)
-            for probe in same_path_probes:
-                prbs_to_miss.append(probe)
-
- #               print(str(probe)+" to "+new_end+" (same as "+str(prb_id)+")")
-                
-                #need to wait for whole tree to be built for this...
-       #         curr_node_dests = []
-      #          for dest in trees[probe].destinations:
-     #               curr_node_dests.append(dest)
-    #            curr_node_weight = trees[probe].weight
-   #             curr_node_children = []
-  #              for child in trees[probe].children:
- #                   curr_node_children.append(child)
-#                curr_node_hop = trees[probe].hop_no
-                curr_node = trees[probe]
-                too_few=False
-
-                while dst_addr in curr_node.destinations and curr_node.weight>2 and not too_few:
-                    child_found=False
-                    for child in curr_node.children:
-                        if dst_addr in child.destinations:
-                            if child.weight<5:
-                                too_few=True
-                                break
-                            curr_node=child #does this overwrite the curr_node?
-                            child_found=True
-#                            curr_node_dests = []
- #                           for dest in child.destinations:
-  #                              curr_node_dests.append(dest)
-   #                         curr_node_weight = child.weight
-    #                        curr_node_children = []
-     #                       for child in child.children:
-      #                          curr_node_children.append(child)
-       #                     curr_node_hop = child.hop_no
-                            break
-                    if not child_found:
+all_probes = [14900, 13114, 13218, 4061, 4096, 14867, 3461, 4518, 18114, 18169, 13721, 14712]
+       
+###########################overlaps at beginning#########################################3                    
+for probe in all_probes:
+       
+    curr_node = trees[probe]
+    too_few=False
+    for dst_addr in hop_ips[probe]:
+        while dst_addr in curr_node.destinations and curr_node.weight>2 and not too_few:
+            child_found=False
+            for child in curr_node.children:
+                if dst_addr in child.destinations:
+                    if child.weight<5:
+                        too_few=True
                         break
+                    curr_node=child #NOTE does this overwrite the curr_node?
+                    child_found=True
 
-                if curr_node.hop_no>1 and len(curr_node.destinations)>1:
-                    curr_node.weight=curr_node.weight-1
-                    curr_node.destinations.remove(dst_addr)
-#                print("probe "+str(probe)+" to "+dst_addr+": "+str(curr_node.hop_no)+" "+str(curr_node.weight))
-                    print(str(probe)+" "+dst_addr+" "+str(curr_node.hop_no)+" "+ curr_node.destinations[0]+" "+new_end+" "+str(prb_id))
+                    break
+            if not child_found:
+                break
+       
+        first_hop = curr_node.hop_no
+
+        if not partial.has_key(probe):
+            partial[probe]={}
+            partial[probe][dst_addr] = [first_hop,125]
+        elif not partial[probe].has_key(dst_addr):
+            partial[probe][dst_addr] = [first_hop,125]
+        elif partial[probe][dst_addr][0]<first_hop:
+            partial[probe][dst_addr] = [first_hop,125]
+ 
+
+##################overlaps at end#########################################3
+for prb_id in all_probes:
+   
+    for dst_addr in hop_ips[prb_id]:
+      
+        same_path_probes = []
+        new_end = dst_addr
+        for hop_ip in hop_ips[prb_id][dst_addr]:
+            if len(end_ips[dst_addr][hop_ip])<=1: #if only one probe went through this hop to get to this dest
+                continue
+            else: #something else goes along this path
+                if len(same_path_probes)<=0:
+                    if not hop_ip==dst_addr and not hop_ip=="x":
+                        for probe in end_ips[dst_addr][hop_ip]:
+                            same_path_probes.append(probe)
+                        new_end = hop_ip
                 else:
-                    print(str(probe)+" "+dst_addr+" "+str(curr_node.hop_no)+" "+ dst_addr+" "+new_end+" "+str(prb_id))
-            
+                    for el in same_path_probes:
+                        if not el in end_ips[dst_addr][hop_ip]: #check if they all continue on the same path
+                            same_path_probes = []
+                            new_end = dst_addr
+                            break
+            for my_probe in same_path_probes:
+             
+                max_hop = hop_ips[my_probe][dst_addr].index(new_end)
+                while partial[my_probe][dst_addr][0]>=max_hop:
+                    max_hop+=1
+                partial[my_probe][dst_addr][1] = max_hop
+                    
+                            
 
-#print(trees[probe].destinations)
- #               print(trees[probe].weight)
-
-
-        #for key in end_ips:        
-        #    if len(end_ips[key])>1: 
-    
-        #        print(key,end=": ")
-        #        print(end_ips[key])
-#        for prb_id in first_hops:
- #           print(prb_id, end= ', ')
-  #          print(first_hops[prb_id])
-   #         print()
-        
-           # print(str(prb_id), end=" - ")
-          #  for hop_ip in hop_ips[prb_id]:
-       #         print(hop_ip, end=", ")
-         #   print('\n')
-        #break
-#for probe in trees:
-#    trees[probe].print_out(1)
+for probe in partial:
+    for dest in partial[probe]:
+        print (my_protocol+": "+str(probe)+" "+dest+" ["+str(partial[probe][dest][0])+","+str(partial[probe][dest][1])+"]")
+ 
