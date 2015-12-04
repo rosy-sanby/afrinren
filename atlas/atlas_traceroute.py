@@ -12,7 +12,7 @@ from measure_baseclass import SLEEP_TIME
 class Traceroute(MeasurementBase):
 
     def __init__(self, target, key, probe_list=None, sess=None, 
-                dont_frag=False, protocol='ICMP', timeout=4000, paris=0, firsthop=1, start_time=None, stop_time=None):
+                dont_frag=False, protocol='ICMP', timeout=4000, paris=0, firsthop=1, maxhops=255, start_time=None, stop_time=None):
         super(Traceroute, self).__init__(target, key, probe_list, sess, start_time, stop_time)
         self.measurement_type = 'traceroute'
        
@@ -21,6 +21,7 @@ class Traceroute(MeasurementBase):
         self.timeout = timeout
         self.paris = int(paris)
         self.firsthop=int(firsthop)
+        self.maxhops=int(maxhops)
         
     def setup_definitions(self):
     
@@ -32,7 +33,8 @@ class Traceroute(MeasurementBase):
         
         if self.paris >= 0 and self.paris <= 64:
             definitions['paris'] = self.paris        
-        definitions['firsthop'] = self.firsthop        
+        definitions['firsthop'] = self.firsthop    
+        definitions['maxhops'] = self.maxhops    
 
         return definitions
 
@@ -48,6 +50,7 @@ def config_argparser():
     parser.add_argument('--npackets', default=[3], nargs=1,
                         help='Number of packets to send to each hop (default: 3)')
     parser.add_argument('--firsthop', default=1, type=int, help='change what the first hop is. (default: 1)')
+    parser.add_argument('--maxhops', default=255, type=int, help='change what the max hop is. (default: 255)')
     return parser
 
 if __name__ == '__main__':
@@ -75,6 +78,7 @@ if __name__ == '__main__':
     repeating = args.repeats[0]
     npackets = args.npackets[0]
     firsthop = args.firsthop
+    maxhops = args.maxhops
     start_time=args.start_time[0]
     stop_time=args.stop_time[0]
 
@@ -106,7 +110,7 @@ if __name__ == '__main__':
                     probe_list_chunk = probe_list_chunks[j]
                     
                     traceroute = Traceroute(target, key, probe_list=probe_list_chunk, 
-                                            dont_frag=dont_frag, protocol=protocol, timeout=timeout, paris=paris, firsthop=firsthop, 
+                                            dont_frag=dont_frag, protocol=protocol, timeout=timeout, paris=paris, firsthop=firsthop, maxhops=maxhops,
                                             start_time=start_time, stop_time=stop_time)
                     traceroute.description = description
                     traceroute.af = 4 if not ipv6 else 6
@@ -133,7 +137,7 @@ if __name__ == '__main__':
                         outf.write(outstr+'\n')
                         print(outstr)
                         j += 1 #only increment on success
-                        time.sleep(5) #changed from 10 to 5
+                        time.sleep(3) #changed from 10 to 3
                     
                 i += 1
             except socket.error:
